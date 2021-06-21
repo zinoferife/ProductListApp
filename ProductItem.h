@@ -7,8 +7,19 @@
 class ProductItem
 {
 public:
+
+	class IdGen
+	{
+	public:
+		IdGen(std::uint64_t startFrom = 0);
+		static std::uint64_t idSeed;
+		static std::uint64_t GetID();
+	};
+	
+
 	ProductItem();
 	ProductItem(std::uint64_t id, const std::string& ProductName,
+		const std::string& ProductActIng,
 		const std::string& CategoryName,
 		const std::string& ProductDesc,
 		const std::string& DirForUse,
@@ -19,6 +30,16 @@ public:
 	~ProductItem();
 	ProductItem& operator=(const ProductItem& product);
 	ProductItem& operator=(ProductItem& product);
+
+	bool operator==(ProductItem& compare);
+	bool operator==(const ProductItem& compare) const;
+
+	bool operator<(ProductItem& compare);
+	bool operator<(const ProductItem& compare) const;
+
+	bool operator>(const ProductItem& compare) const;
+	bool operator!=(const ProductItem& compare) const;
+
 
 	ProductItem(const ProductItem& product);
 	ProductItem(ProductItem& product);
@@ -31,6 +52,9 @@ public:
 
 	inline const std::string& GetProductName() const { return mProductName; }
 	inline std::string& ProductName() { return mProductName; }
+
+	inline const std::string& GetProductActIng() const { return mProductActiveIngredent; }
+	inline std::string& ProductActiveIng() { return mProductActiveIngredent; }
 
 	inline const std::string& GetCategoryName() const { return mCategoryName; }
 	inline std::string& CategoryName() { return mCategoryName; }
@@ -49,10 +73,13 @@ public:
 
 
 
+	bool IsEmpty() const;
+
 private:
 
 	std::uint64_t mProductID;
 	std::string mProductName;
+	std::string mProductActiveIngredent;
 	std::string mCategoryName;
 	std::string mProductDesc;
 	std::string mDirForUse;

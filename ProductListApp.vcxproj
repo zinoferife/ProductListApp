@@ -22,6 +22,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="ArtProvider.cpp" />
     <ClCompile Include="MainFrame.cpp" />
+    <ClCompile Include="ProductEntry.cpp" />
     <ClCompile Include="ProductItem.cpp" />
     <ClCompile Include="ProductList.cpp" />
   </ItemGroup>
@@ -29,6 +30,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="ArtProvider.h" />
     <ClInclude Include="MainFrame.h" />
+    <ClInclude Include="ProductEntry.h" />
     <ClInclude Include="ProductItem.h" />
     <ClInclude Include="ProductList.h" />
   </ItemGroup>
