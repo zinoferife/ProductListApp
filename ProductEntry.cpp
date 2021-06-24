@@ -11,7 +11,7 @@
 
 ProductEntry::ProductEntry( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name ) : wxPanel( parent, id, pos, size, style, name )
 {
-	this->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
+	//this->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_WINDOW ) );
 	this->SetToolTip( wxT("Enter a product") );
 
 	wxBoxSizer* bSizer1;
@@ -26,7 +26,7 @@ ProductEntry::ProductEntry( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	m_staticText13->Wrap( -1 );
 	fgSizer1->Add( m_staticText13, 0, wxALL, 5 );
 
-	ProductName = new wxTextCtrl( this, wxID_ANY, wxT("Ferife Ds "), wxDefaultPosition, wxDefaultSize, 0 );
+	ProductName = new wxTextCtrl( this, wxID_ANY, wxT(" "), wxDefaultPosition, wxDefaultSize, 0 );
 	ProductName->SetMinSize( wxSize( 180,-1 ) );
 
 	fgSizer1->Add( ProductName, 1, wxALL, 5 );
@@ -82,9 +82,9 @@ ProductEntry::ProductEntry( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	AddNewCategory = new wxBitmapButton( this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|wxBORDER_NONE );
 
 	AddNewCategory->SetBitmap( wxArtProvider::GetBitmap( "search"));
-	AddNewCategory->SetBitmapDisabled( wxArtProvider::GetBitmap( wxT("gtk-warning")));
+	AddNewCategory->SetBitmapDisabled( wxArtProvider::GetBitmap("search"));
 	AddNewCategory->SetBitmapPressed( wxArtProvider::GetBitmap( "search"));
-	AddNewCategory->SetBitmapFocus( wxArtProvider::GetBitmap( wxART_ADD_BOOKMARK));
+	AddNewCategory->SetBitmapFocus( wxArtProvider::GetBitmap("search"));
 	AddNewCategory->SetBitmapCurrent( wxArtProvider::GetBitmap( "search"));
 	AddNewCategory->SetToolTip( wxT("Add new category\n") );
 
@@ -99,10 +99,10 @@ ProductEntry::ProductEntry( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 	bSizer5->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	ProductOk = new wxButton( this, wxID_ANY, wxT("Ok"), wxDefaultPosition, wxDefaultSize, 0 );
+	ProductOk = new wxButton( this, ID_OK, wxT("Ok"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer5->Add( ProductOk, 0, wxALL, 5 );
 
-	PoductCancel = new wxButton( this, wxID_ANY, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+	PoductCancel = new wxButton( this, ID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer5->Add( PoductCancel, 0, wxALL, 5 );
 
 
@@ -115,4 +115,37 @@ ProductEntry::ProductEntry( wxWindow* parent, wxWindowID id, const wxPoint& pos,
 
 ProductEntry::~ProductEntry()
 {
+}
+
+bool ProductEntry::GetData(std::string& name, std::string& ActiveIng, std::string& ProductDescription, std::string& ProductCategory, std::string& DirectionForUse)
+{
+	//validate the date
+
+
+	name = this->ProductName->GetValue().ToStdString();
+	ActiveIng = this->ProductActIng->GetValue().ToStdString();
+	ProductDescription = this->ProductDescription->GetValue().ToStdString();
+	ProductCategory = this->ProductCategory->GetValue().ToStdString();
+	DirectionForUse = this->ProductDirectionForUse->GetValue().ToStdString();
+	return true;
+
+
+}
+
+void ProductEntry::Clear()
+{
+	ProductName->Clear();
+	ProductActIng->Clear();
+	ProductDescription->Clear();
+	ProductCategory->Clear();
+	ProductDirectionForUse->Clear();
+	ProductCategory->Append(mComboSeletion);
+}
+
+void ProductEntry::AddCategory(const std::string category)
+{
+	if (ProductCategory->FindString(category) == wxNOT_FOUND)
+	{
+		mComboSeletion.push_back(category);
+	}
 }

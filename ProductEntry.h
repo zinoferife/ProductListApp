@@ -24,6 +24,8 @@
 #include <wx/button.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
+#include <vector>
+
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +37,7 @@ class ProductEntry : public wxPanel
 {
 	private:
 
-	protected:
+	public:
 		wxStaticText* m_staticText13;
 		wxTextCtrl* ProductName;
 		wxStaticText* m_staticText14;
@@ -50,10 +52,23 @@ class ProductEntry : public wxPanel
 		wxButton* ProductOk;
 		wxButton* PoductCancel;
 
-	public:
+		enum
+		{
+			ID_OK,
+			ID_CANCEL
+		};
+
 
 		ProductEntry( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 528,283 ), long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString );
 		~ProductEntry();
 
+		bool GetData(std::string& name,
+			std::string& ActiveIng,
+			std::string& ProductDescription,
+			std::string& ProductCategory,
+			std::string& DirectionForUse);
+		void Clear();
+		void AddCategory(const std::string category);
+		wxArrayString mComboSeletion;
 };
 

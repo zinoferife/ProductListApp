@@ -15,7 +15,7 @@ public:
 		static std::uint64_t idSeed;
 		static std::uint64_t GetID();
 	};
-	
+
 
 	ProductItem();
 	ProductItem(std::uint64_t id, const std::string& ProductName,
@@ -29,7 +29,10 @@ public:
 
 	~ProductItem();
 	ProductItem& operator=(const ProductItem& product);
-	ProductItem& operator=(ProductItem& product);
+	ProductItem& operator=(const ProductItem&& product) noexcept;
+
+	ProductItem(const ProductItem& product);
+	ProductItem(ProductItem&& product) noexcept;
 
 	bool operator==(ProductItem& compare);
 	bool operator==(const ProductItem& compare) const;
@@ -41,8 +44,6 @@ public:
 	bool operator!=(const ProductItem& compare) const;
 
 
-	ProductItem(const ProductItem& product);
-	ProductItem(ProductItem& product);
 
 
 	friend std::ostream& operator<<(std::ostream& os, const ProductItem& item);
@@ -70,6 +71,9 @@ public:
 
 	inline float GetUnitPrice() const { return mUnitPrice; }
 	float& UnitPrice() { return mUnitPrice; }
+
+	inline std::uint64_t& Id() { return mProductID; }
+	std::uint64_t GetID() { return mProductID; }
 
 
 

@@ -16,8 +16,7 @@
 #include <fstream>
 #include <iterator>
 #include <mutex>
-#include <lock>
-
+#include <memory>
 #include <unordered_map>
 #include "ProductItem.h"
 
@@ -43,38 +42,49 @@ public:
 		FILE_DOES_NOT_EXIST,
 		DATABASE_SAVE_FAIL
 	};
-
+	typedef std::unordered_map < std::string, std::set<ProductItem> > StoreType;
+	typedef StoreType::iterator StoreIterator;
+	typedef StoreType::const_iterator StoreConstIterator;
 
 	ProductList(wxWindow* parent, wxWindowID id, const wxPoint& position, const wxSize& size);
 
-	bool HasCategory(const std::string& category);
-
+	bool HasCategory(const std::string& category, StoreIterator* Founditer);
+	inline bool IsEmpty() const { return mItemStore.empty();  }
 	bool AddItem(const std::string& category, const ProductItem& item);
 	bool AddItem(const ProductItem& item);
+	bool RemoveItem(const std::string& category, const ProductItem& item);
+	bool RemoveItem(const ProductItem& item);
 
-	ProductItem& GetItem(const std::string& ProductName, const std::string& Category);
+
+	const ProductItem& GetItem(const std::string& ProductName, const std::string& Category) const;
 
 	
 	void LoadListDatabase();
-
-	//spins off a thread
 	void SaveDatabase();
-
-
 	const std::string& FindDatabase();
 	void ParseJsonFile();
 	void SaveJsonFile();
-	void AppendProduct(const std::vector<std::string>& productDesc);
+
+	//get code
+	inline std::uint32_t GetErrorCode() { return mPLErrorCode; }
 
 public:
 	//GUI
 	void CreateListView();
+	std::shared_ptr<wxDataViewListCtrl> GetListControl();
+	void AppendToViewList(const ProductItem& item);
 
 public:
 	//operations on store
-	void CreateCategory(const std::string& mCatrgory);
-	
+	bool CreateCategory(const std::string& mCatrgory);
+	inline std::string& GetCurrentCategory() { return mCurrentCategory; }
+	void GetCategoryList(std::list<std::string>& categories);
+
 private:
+	void OnListItemSelectionChanged(wxDataViewEvent& event);
+	void OnListItemActivated(wxDataViewEvent& event);
+
+public:
 	//product list event handlers
 	void OnCategoryChange(const std::string& Category);
 	void OnCategoryRemoved(const std::string& Category);
@@ -83,16 +93,19 @@ private:
 	void OnProductRemoved(ProductItem& item);
 	void OnProductEdited(ProductItem& oldItem, ProductItem& newItem);
 	void OnDataLoaded();
+	void OnSaved();
 
 private:
-	std::unordered_map<std::string, std::set<ProductItem> > mItemStore;
-
+	StoreType mItemStore;
+	std::string mCurrentCategory;
 private:
 	bool doload(std::fstream& file);
 	bool doSave(std::fstream& file);
+	bool updateViewList(StoreIterator iterator);
+	void ResetViewList();
 	void WriteErrorCode(int errorCode);
 	//GUI
-	wxDataViewListCtrl* mDataListViewControl;
+	std::shared_ptr<wxDataViewListCtrl> mDataListViewControl;
 	ProductItem mEmptyProduct;
 	std::uint32_t mPLErrorCode;
 	std::string mDatabasePath;
@@ -101,6 +114,7 @@ private:
 private:
 	//thread semantics
 	std::mutex mPLMutex;
+	std::mutex mPLStoreMutex;
 
 	DECLARE_EVENT_TABLE()
 };

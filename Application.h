@@ -9,6 +9,12 @@
 class Application : public wxApp
 {
 public:
+	enum
+	{
+		MAIN_FRAME
+
+	};
+
 	Application();
 	virtual bool OnInit() override;
 	wxString mApplicationPath;

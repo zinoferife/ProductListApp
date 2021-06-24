@@ -16,22 +16,14 @@ ProductItem::~ProductItem()
 
 }
 
-ProductItem& ProductItem::operator=(const ProductItem& product) 
-{
-	mProductID = product.mProductID;
-	mProductName = product.mProductName;
-	mProductActiveIngredent = product.mProductActiveIngredent;
-	mCategoryName = product.mCategoryName;
-	mProductDesc = product.mProductDesc;
-	mDirForUse = product.mDirForUse;
-	mStockCount = product.mStockCount;
-	mUnitPrice = product.mUnitPrice;
-	return (*this);
-}
 
-ProductItem& ProductItem::operator=(ProductItem& product)
+ProductItem& ProductItem::operator=(const ProductItem& product)
 {
 	// TODO: insert return statement here
+	if (this == &product)
+	{
+		return (*this);
+	}
 	mProductID = product.mProductID;
 	mProductName = product.mProductName;
 	mProductActiveIngredent = product.mProductActiveIngredent;
@@ -41,6 +33,24 @@ ProductItem& ProductItem::operator=(ProductItem& product)
 	mStockCount = product.mStockCount;
 	mUnitPrice = product.mUnitPrice;
 	return(*this);
+}
+
+ProductItem& ProductItem::operator=(const ProductItem&& product) noexcept
+{
+	if (this == &product)
+	{
+		return *this;
+	}
+
+	mProductID = product.mProductID;
+	mProductName = std::move(product.mProductName);
+	mProductActiveIngredent = std::move(product.mProductActiveIngredent);
+	mCategoryName = std::move(product.mCategoryName);
+	mProductDesc = std::move(product.mProductDesc);
+	mDirForUse = std::move(product.mDirForUse);
+	mStockCount = product.mStockCount;
+	mUnitPrice = product.mUnitPrice;
+	return (*this);
 }
 
 bool ProductItem::operator==(ProductItem& compare)
@@ -73,6 +83,7 @@ bool ProductItem::operator!=(const ProductItem& compare) const
 	return !(*this == compare);
 }
 
+
 ProductItem::ProductItem(const ProductItem& product)
 {
 	mProductID = product.mProductID;
@@ -83,6 +94,18 @@ ProductItem::ProductItem(const ProductItem& product)
 	mDirForUse = product.mDirForUse;
 	mStockCount = product.mStockCount;
 	mUnitPrice = product.mUnitPrice;
+}
+
+ProductItem::ProductItem(ProductItem&& product) noexcept
+{
+	mProductID = product.mProductID;
+	mProductName = std::move(product.mProductName);
+	mProductActiveIngredent = std::move(product.mProductActiveIngredent);
+	mProductDesc = std::move(product.mProductDesc);
+	mDirForUse = std::move(product.mDirForUse);
+	mStockCount = product.mStockCount;
+	mUnitPrice = product.mUnitPrice;
+
 }
 
 std::size_t ProductItem::GetMemSpace()
@@ -108,7 +131,7 @@ std::ostream& operator<<(std::ostream& os, const ProductItem& item)
 {
 	std::size_t bytes = 0;
 	bytes = sizeof(std::uint64_t);
-	os.write((const char*)item.mProductID, bytes);
+	os.write((const char*)&item.mProductID, bytes);
 
 	bytes = sizeof(std::string::value_type) * item.mProductName.size();
 	os << bytes;
@@ -137,37 +160,46 @@ std::ostream& operator<<(std::ostream& os, const ProductItem& item)
 
 	bytes = sizeof(float);
 	os.write((const char*)& item.mUnitPrice, bytes);
+
+	return os;
 }
 
 std::istream& operator>>(std::istream& os, ProductItem& item)
 {
+	//buffer overlow attach here, big security issue
+
 	char* buffer = new char[256];
 	std::size_t bytes = sizeof(std::uint64_t);
 	os.read((char*)&item.mProductID, bytes);
 
 	os >> bytes;
+	if(bytes >= 256) bytes = 256;
+	memset(buffer, '\0', 256);
 	os.read(buffer, bytes);
-	buffer[bytes + 1] = '\0';
 	item.mProductName = std::string(buffer);
 
 	os >> bytes;
+	if(bytes >= 256) bytes = 256;
+	memset(buffer, '\0', 256);
 	os.read(buffer, bytes);
-	buffer[bytes + 1] = '\0';
 	item.mProductActiveIngredent = std::string(buffer);
 
 	os >> bytes;
+	if(bytes >= 256) bytes = 256;
+	memset(buffer, '\0', 256);
 	os.read(buffer, bytes);
-	buffer[bytes + 1] = '\0';
 	item.mCategoryName = std::string(buffer);
 
 	os >> bytes;
+	if(bytes >= 256) bytes = 256;
+	memset(buffer, '\0', 256);
 	os.read(buffer, bytes);
-	buffer[bytes + 1] = '\0';
 	item.mProductDesc = std::string(buffer);
 
 	os >> bytes;
+	if(bytes >= 256) bytes = 256;
+	memset(buffer, '\0', 256);
 	os.read(buffer, bytes);
-	buffer[bytes + 1] = '\0';
 	item.mDirForUse = std::string(buffer);
 
 	bytes = sizeof(std::uint32_t);
@@ -175,6 +207,8 @@ std::istream& operator>>(std::istream& os, ProductItem& item)
 
 	bytes = sizeof(float);
 	os.read((char*)& item.mUnitPrice, bytes);
+
+	return os;
 
 }
 
