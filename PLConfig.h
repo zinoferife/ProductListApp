@@ -18,6 +18,8 @@ public:
 	void SaveConFigFile();
 	void LoadConfigFile();
 	std::string& operator[](const std::string& key);
+	bool InsertConfig(const std::string& key, const std::string& value);
+
 
 private:
 	std::map<std::string, std::string> mConfigMap;

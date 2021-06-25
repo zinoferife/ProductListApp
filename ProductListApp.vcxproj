@@ -21,8 +21,11 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="ArtProvider.cpp" />
+    <ClCompile Include="HealthEntry.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="PLConfig.cpp" />
+    <ClCompile Include="ProductDialog.cpp" />
+    <ClCompile Include="ProductDisplay.cpp" />
     <ClCompile Include="ProductEntry.cpp" />
     <ClCompile Include="ProductItem.cpp" />
     <ClCompile Include="ProductList.cpp" />
@@ -30,8 +33,11 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="ArtProvider.h" />
+    <ClInclude Include="HealthEntry.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="PLConfig.h" />
+    <ClInclude Include="ProductDialog.h" />
+    <ClInclude Include="ProductDisplay.h" />
     <ClInclude Include="ProductEntry.h" />
     <ClInclude Include="ProductItem.h" />
     <ClInclude Include="ProductList.h" />

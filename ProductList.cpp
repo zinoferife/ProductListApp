@@ -1,14 +1,19 @@
 #include "ProductList.h"
 #include "Application.h"
 BEGIN_EVENT_TABLE(ProductList, wxPanel)
-	EVT_DATAVIEW_SELECTION_CHANGED(ID_PRODUCT_VIEW, ProductList::OnListItemSelectionChanged)
-	EVT_DATAVIEW_ITEM_ACTIVATED(ID_PRODUCT_VIEW,ProductList::OnListItemActivated)
+	EVT_DATAVIEW_SELECTION_CHANGED(ID_PRODUCT_VIEW, ProductList::OnProductSelectionChanged)
+	EVT_DATAVIEW_ITEM_ACTIVATED(ID_PRODUCT_VIEW,ProductList::OnProductActivated)
+	EVT_DATAVIEW_ITEM_EDITING_DONE(ID_PRODUCT_VIEW, ProductList::OnProductEndEditing)
+	EVT_CONTEXT_MENU(ProductList::OnContextMenu)
+	EVT_MENU(ProductList::ID_CONTEXT_ADD, ProductList::OnContextAdd)
+	EVT_MENU(ProductList::ID_CONTEXT_REMOVE, ProductList::OnContextRemove)
+	EVT_MENU(ProductList::ID_CONTEXT_EDIT, ProductList::OnContextEdit)
 END_EVENT_TABLE()
 
 
 
 ProductList::ProductList(wxWindow* parent, wxWindowID id, const wxPoint& position, const wxSize& size)
-: wxPanel(parent, id, position,size){
+: wxPanel(parent, id, position,size), mProductCurrentEditing(NULL){
 	mDatabasePath = wxGetApp().mApplicationPath + "\\.data";
 	mPLErrorCode = NO_PL_ERROR;
 	CreateListView();
@@ -96,12 +101,26 @@ bool ProductList::AddItem(const ProductItem& item)
 
 bool ProductList::RemoveItem(const std::string& category, const ProductItem& item)
 {
-	return false;
+	
+
+	return true;
 }
 
 bool ProductList::RemoveItem(const ProductItem& item)
 {
-	return false;
+	auto found = mItemStore.find(item.GetCategoryName());
+	if (found != mItemStore.end())
+	{
+		//should handle 
+		auto i = found->second.find(item);
+		if (i == found->second.end()) return false;
+		found->second.erase(i);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 const ProductItem& ProductList::GetItem(const std::string& ProductName, const std::string& Category) const
@@ -161,7 +180,7 @@ void ProductList::LoadListDatabase()
 			//do load
 			if (!doload(database))
 			{
-				//load ddi not work
+				//load did not work
 				if (mPLErrorCode == FILE_CORRUPTED)
 				{
 					wxMessageBox("Failed to load database, file corrupted", "DATABASE ERROR",wxOK | wxICON_ERROR);
@@ -286,13 +305,15 @@ void ProductList::CreateListView()
 	if (mDataListViewControl == nullptr)
 	{
 		//create the list view control
-		mDataListViewControl.reset(new wxDataViewListCtrl(this, ID_PRODUCT_VIEW));
+		mDataListViewControl.reset(new wxDataViewListCtrl(this, ID_PRODUCT_VIEW, wxDefaultPosition, wxDefaultSize));
 		//create column
-		mDataListViewControl->AppendIconTextColumn("Product name", wxDATAVIEW_CELL_INERT, 180);
+		mDataListViewControl->AppendTextColumn("Product name", wxDATAVIEW_CELL_EDITABLE, 180);
+		mDataListViewControl->AppendBitmapColumn(wxT("AVL"),1);
 		mDataListViewControl->AppendTextColumn("Category name", wxDATAVIEW_CELL_INERT, 180);
-		mDataListViewControl->AppendTextColumn("Active ingredent", wxDATAVIEW_CELL_INERT, 180);
-		mDataListViewControl->AppendTextColumn("Stock count");
-		mDataListViewControl->AppendTextColumn("Unit price(N)");
+		mDataListViewControl->AppendTextColumn("Class", wxDATAVIEW_CELL_INERT, 100);
+		mDataListViewControl->AppendTextColumn("Active ingredent", wxDATAVIEW_CELL_EDITABLE, 180);
+		mDataListViewControl->AppendTextColumn("Stock count", wxDATAVIEW_CELL_EDITABLE, 100);
+		mDataListViewControl->AppendTextColumn("Unit price (N)", wxDATAVIEW_CELL_EDITABLE, 100);
 		mDataListViewControl->Update();
 
 	}
@@ -315,20 +336,37 @@ std::shared_ptr<wxDataViewListCtrl> ProductList::GetListControl()
 void ProductList::AppendToViewList(const ProductItem& item)
 {
 	wxVector<wxVariant> mdata;
-	wxIcon icon;
+	mdata.push_back(wxVariant(item.GetProductName()));
+	
 	if (item.GetStockCount() != 0)
-		icon.CopyFromBitmap(wxArtProvider::GetBitmap("check"));
+		mdata.push_back(wxVariant(wxArtProvider::GetBitmap("check")));
 	else
-		icon.CopyFromBitmap(wxArtProvider::GetBitmap("delete"));
+		mdata.push_back(wxVariant(wxArtProvider::GetBitmap("delete")));
 
-	mdata.push_back(wxVariant(wxDataViewIconText(item.GetProductName(), icon)));
 	mdata.push_back(wxVariant(item.GetCategoryName()));
+	mdata.push_back(wxVariant(item.GetProductClass()));
 	mdata.push_back(wxVariant(item.GetProductActIng()));
 	mdata.push_back(wxVariant(std::to_string(item.GetStockCount())));
-	mdata.push_back(wxVariant(std::to_string(item.GetUnitPrice())));
+
+	wxString price;
+	price.sprintf("%.2f", item.GetUnitPrice());
+	mdata.push_back(wxVariant(price));
 
 	mDataListViewControl->AppendItem(mdata);
 
+}
+
+void ProductList::ShowAll()
+{
+	ResetViewList();
+	for (auto& i : mItemStore)
+	{
+		for (auto& s : i.second)
+		{
+			AppendToViewList(s);
+		}
+	}
+	mCurrentCategory = "All categories";
 }
 
 bool ProductList::CreateCategory(const std::string& mCatrgory)
@@ -361,6 +399,11 @@ void ProductList::OnListItemActivated(wxDataViewEvent& event)
 
 void ProductList::OnCategoryChange(const std::string& Category)
 {
+	if (Category == "All categories")
+	{
+		ShowAll();
+		return;
+	}
 	StoreIterator catIter;
 	if (mCurrentCategory != Category && HasCategory(Category, &catIter))
 	{
@@ -406,6 +449,11 @@ void ProductList::OnCategoryRemoved(const std::string& Category)
 		else
 		{
 			mItemStore.erase(catIter);
+			if (mCurrentCategory == "All categories")
+			{
+				//refresh view if on all categories
+				ShowAll();
+			}
 		}
 	}
 }
@@ -432,6 +480,55 @@ void ProductList::OnProductEdited(ProductItem& oldItem, ProductItem& newItem)
 	AddItem(newItem);
 }
 
+void ProductList::OnContextMenu(wxContextMenuEvent& event)
+{
+	int rowSelected = GetListControl()->GetSelectedRow();
+	if (rowSelected != wxNOT_FOUND)
+	{
+		wxMenu* menu = new wxMenu;
+		menu->Append(ID_CONTEXT_ADD, wxT("Add product"));
+		menu->Append(ID_CONTEXT_REMOVE, wxT("Remove product"));
+		menu->Append(ID_CONTEXT_EDIT, wxT("Edit product"));
+
+		PopupMenu(menu);
+	}
+}
+
+void ProductList::OnContextAdd(wxCommandEvent& event)
+{
+	wxMessageBox("Context add");
+}
+
+void ProductList::OnContextRemove(wxCommandEvent& event)
+{
+	auto category = GetCurrentCategory();
+	if (!category.empty())
+	{
+		auto listView = GetListControl();
+		auto model = listView->GetModel();
+		auto selItem = listView->GetCurrentItem();
+		if (selItem.IsOk())
+		{
+			wxVariant itemDataName, itemDataCategory;
+			model->GetValue(itemDataName, selItem, 0);
+			model->GetValue(itemDataCategory, selItem, 2);
+			//remove from the store and the view
+			RemoveItem(GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString()));
+
+			//lol 
+			listView->DeleteItem(listView->ItemToRow(selItem));
+		}
+		else
+		{
+			wxMessageBox("No product selected", "Remove product");
+		}
+	}
+}
+
+void ProductList::OnContextEdit(wxCommandEvent& event)
+{
+}
+
 void ProductList::OnDataLoaded()
 {
 	//supposed to be called by load database when the file is loaded
@@ -451,6 +548,69 @@ void ProductList::OnSaved()
 {
 	//called when the files are successfully saved
 
+}
+
+void ProductList::OnProductStartEditing(wxDataViewEvent& event)
+{
+	wxMessageBox("Start editing", "Product Selection", wxOK, this);
+}
+
+//in place editing
+void ProductList::OnProductEndEditing(wxDataViewEvent& event)
+{
+	if (event.IsEditCancelled())
+	{
+		wxMessageBox("Messge here");
+	}
+
+	auto model = event.GetModel();
+	auto col = event.GetDataViewColumn();
+	auto item = event.GetItem();
+
+	if (col && model && item.IsOk() && mProductCurrentEditing)
+	{
+		
+		
+
+		wxDataViewRenderer* renderer = col->GetRenderer();
+		renderer->FinishEditing();
+	}
+}
+
+void ProductList::OnProductEditStarted(wxDataViewEvent& event)
+{
+	wxMessageBox("editing started", "Product Selection", wxOK, this);
+}
+
+void ProductList::OnProductSelectionChanged(wxDataViewEvent& event)
+{
+
+}
+
+void ProductList::OnProductActivated(wxDataViewEvent& event)
+{
+	auto model = event.GetModel();
+	auto col = event.GetDataViewColumn();
+	auto item = event.GetItem();
+
+	if (col && model && item.IsOk())
+	{
+		wxVariant itemDataName, itemDataCategory;
+		model->GetValue(itemDataName, item, 0);
+		model->GetValue(itemDataCategory, item, 2);
+		
+		//get the current editing item from the store
+		ProductItem test;
+		test.ProductName() = itemDataName.GetString().ToStdString();
+		const ProductItem* itemTest = &GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString());//&(*mItemStore.find(itemDataCategory.GetString().ToStdString())->second.find(test));
+		mProductCurrentEditing = const_cast<ProductItem*>(itemTest);
+
+
+		wxDataViewRenderer* renderer = col->GetRenderer();
+		wxRect itemRect = mDataListViewControl->GetItemRect(item);
+		renderer->StartEditing(item, itemRect);
+		
+	}
 }
 
 //file is chunk based, PLI1|PLI2 ... |PLIn

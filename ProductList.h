@@ -19,6 +19,7 @@
 #include <memory>
 #include <unordered_map>
 #include "ProductItem.h"
+#include "ProductDialog.h"
 
 
 class ProductList : public wxPanel
@@ -40,7 +41,10 @@ public:
 		UNUSUAL_ERROR_IN_LOAD,
 		FILE_CORRUPTED,
 		FILE_DOES_NOT_EXIST,
-		DATABASE_SAVE_FAIL
+		DATABASE_SAVE_FAIL,
+		ID_CONTEXT_REMOVE,
+		ID_CONTEXT_EDIT,
+		ID_CONTEXT_ADD
 	};
 	typedef std::unordered_map < std::string, std::set<ProductItem> > StoreType;
 	typedef StoreType::iterator StoreIterator;
@@ -73,6 +77,7 @@ public:
 	void CreateListView();
 	std::shared_ptr<wxDataViewListCtrl> GetListControl();
 	void AppendToViewList(const ProductItem& item);
+	void ShowAll();
 
 public:
 	//operations on store
@@ -91,9 +96,24 @@ public:
 	void OnCategoryNameChange(const std::string& oldName, const std::string& newName);
 	void OnProductAdded(ProductItem& item);
 	void OnProductRemoved(ProductItem& item);
-	void OnProductEdited(ProductItem& oldItem, ProductItem& newItem);
 	void OnDataLoaded();
 	void OnSaved();
+
+
+
+	void OnProductStartEditing(wxDataViewEvent& event);
+	void OnProductEndEditing(wxDataViewEvent& event);
+	void OnProductEditStarted(wxDataViewEvent& event);
+	void OnProductSelectionChanged(wxDataViewEvent& event);
+	void OnProductActivated(wxDataViewEvent& event);
+	void OnProductEdited(ProductItem& oldItem, ProductItem& newItem);
+
+
+	//context menu
+	void OnContextMenu(wxContextMenuEvent& event);
+	void OnContextAdd(wxCommandEvent& event);
+	void OnContextRemove(wxCommandEvent& event);
+	void OnContextEdit(wxCommandEvent& event);
 
 private:
 	StoreType mItemStore;
@@ -110,6 +130,9 @@ private:
 	std::uint32_t mPLErrorCode;
 	std::string mDatabasePath;
 
+
+	//editing system
+	ProductItem* mProductCurrentEditing;
 
 private:
 	//thread semantics

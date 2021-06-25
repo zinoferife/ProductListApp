@@ -27,6 +27,8 @@ public:
 	enum {
 		//Menu
 		ID_NEW_CATEGORY = wxID_HIGHEST + 1,
+		ID_NEW_PRODUCT,
+		ID_CATGORY_WINDOW,
 		ID_PRODUCT_ENTRY,
 		ID_TOOL_BACK,
 		ID_TOOL_FRONT,
@@ -38,7 +40,8 @@ public:
 		ID_TOOL_SAVE_DATABASE,
 		ID_TOOL_USER,
 		ID_PRODUCT_LIST,
-		ID_CATEGORY_LIST
+		ID_CATEGORY_LIST,
+		ID_TOOL_DOWNLOAD_DATA
 	};
 
 	MainFrame(wxWindow* parent, wxWindowID id, const wxPoint& position, const wxSize& size);
@@ -55,8 +58,7 @@ private:
 	//control functions
 	void CreateProductList();
 	void CreateCategoryList();
-	void CreateProductEntry();
-	void SavePerspective();
+	void SaveAppConfig();
 	void CreateDefaultArtSettings();
 
 private:
@@ -74,15 +76,13 @@ private:
 	void OnNext(wxCommandEvent& event);
 	void OnBack(wxCommandEvent& event);
 	void OnAddProduct(wxCommandEvent& event);
-	void OnProductAdded(wxCommandEvent& evnt);
 	void OnRemoveProduct(wxCommandEvent& event);
 	void OnProductRemoved(wxCommandEvent& evnt);
 	void OnAddCategory(wxCommandEvent& event);
 	void OnRemoveCategory(wxCommandEvent& event);
-	void OnProductEntryCancelled(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
 	void OnCategoryListSelection(wxCommandEvent& event);
-
+	void OnCategoryWindow(wxCommandEvent& event);
 
 	//erase
 	void OnEraseBackground(wxEraseEvent& event);

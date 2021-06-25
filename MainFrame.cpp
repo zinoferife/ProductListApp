@@ -9,21 +9,21 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_MENU(wxID_SAVE, MainFrame::OnSave)
 	EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
 	EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnAddCategory)
+	EVT_MENU(ID_CATGORY_WINDOW, MainFrame::OnCategoryWindow)
+	EVT_MENU(ID_NEW_PRODUCT, MainFrame::OnAddProduct)
 	EVT_TOOL(ID_TOOL_BACK, MainFrame::OnBack)
 	EVT_TOOL(ID_TOOL_FRONT, MainFrame::OnNext)
 	EVT_TOOL(ID_TOOL_ADD_PRODUCT, MainFrame::OnAddProduct)
 	EVT_TOOL(ID_TOOL_ADD_CATEGORY, MainFrame::OnAddCategory)
 	EVT_TOOL(ID_TOOL_REMOVE_PRODUCT, MainFrame::OnRemoveProduct)
 	EVT_TOOL(ID_TOOL_REMOVE_CATEGORY, MainFrame::OnRemoveCategory)
-	EVT_BUTTON(ProductEntry::ID_OK, MainFrame::OnProductAdded)
-	EVT_BUTTON(ProductEntry::ID_CANCEL, MainFrame::OnProductEntryCancelled)
-	EVT_LISTBOX(ID_CATEGORY_LIST, MainFrame::OnCategoryListSelection)
+	EVT_LISTBOX_DCLICK(ID_CATEGORY_LIST, MainFrame::OnCategoryListSelection)
 END_EVENT_TABLE()
 
 
 
 MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxPoint& position, const wxSize& size)
-:wxFrame(parent,id , wxT("Dglopa product list"), position,size){
+:wxFrame(parent,id , wxT("Dglopa pharmacy stock manager"), position,size){
 	//do initalize of system
 	mFrameManager.reset(new wxAuiManager(this));
 	mPLConfig.reset(new PLConfig(".data\\config.txt"));
@@ -35,6 +35,13 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxPoint& position, c
 	}
 
 	isCreated = true;
+
+	//setApp icon: Temp 
+	wxIcon icon;
+	icon.CopyFromBitmap(wxArtProvider::GetBitmap("appIcon"));
+	SetIcon(icon);
+
+
 	SetStatusText("Ready");
 }
 
@@ -53,7 +60,6 @@ bool MainFrame::InitCreation()
 	CreateToolBar();
 	CreateProductList();
 	CreateCategoryList();
-	CreateProductEntry();
 	CreateDefaultArtSettings();
 	mFrameManager->Update();
 	return true;
@@ -63,14 +69,16 @@ void MainFrame::CreateToolBar()
 {
 	wxAuiToolBar* toolbar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT | wxAUI_TB_OVERFLOW );
 	toolbar->SetToolBitmapSize(wxSize(16, 16));
-	toolbar->AddTool(ID_TOOL_BACK, wxT("Back"), wxArtProvider::GetBitmap("back"));
-	toolbar->AddTool(ID_TOOL_FRONT, wxT("Next"), wxArtProvider::GetBitmap("next"));
+	toolbar->AddTool(ID_TOOL_BACK, wxEmptyString, wxArtProvider::GetBitmap("back"));
+	toolbar->AddTool(ID_TOOL_FRONT, wxEmptyString, wxArtProvider::GetBitmap("next"));
+	toolbar->AddSeparator();
 	toolbar->AddTool(ID_TOOL_ADD_PRODUCT, wxT("Add product"), wxArtProvider::GetBitmap("add"));
 	toolbar->AddTool(ID_TOOL_REMOVE_PRODUCT, wxT("Remove product"), wxArtProvider::GetBitmap("delete"));
-	toolbar->AddTool(ID_TOOL_ADD_CATEGORY, wxT("Add Category"), wxArtProvider::GetBitmap("file"));
-	toolbar->AddTool(ID_TOOL_REMOVE_CATEGORY, wxT("Remove Category"), wxArtProvider::GetBitmap("remove"));
-	toolbar->AddTool(ID_TOOL_USER, wxT("User"), wxArtProvider::GetBitmap("user"));
+	toolbar->AddTool(ID_TOOL_ADD_CATEGORY, wxT("Add category"), wxArtProvider::GetBitmap("file"));
+	toolbar->AddTool(ID_TOOL_REMOVE_CATEGORY, wxT("Remove category"), wxArtProvider::GetBitmap("remove"));
 	toolbar->AddStretchSpacer();
+	toolbar->AddTool(ID_TOOL_DOWNLOAD_DATA, wxT("Download data"), wxArtProvider::GetBitmap("download"));
+	toolbar->AddTool(ID_TOOL_USER, wxT("User"), wxArtProvider::GetBitmap("user"));
 	toolbar->Realize();
 	mFrameManager->AddPane(toolbar, wxAuiPaneInfo().Name(wxT("Tool")).Caption(wxT("Tool bar"))
 		.ToolbarPane().Top().Resizable().Row(1).LeftDockable(false).RightDockable(false).Floatable(false).BottomDockable(false));
@@ -86,14 +94,20 @@ void MainFrame::CreateMenuBar()
 
 	wxMenu* products = new wxMenu;
 	products->Append(ID_NEW_CATEGORY, "New categorty\tCtrl-T");
+	products->Append(ID_NEW_PRODUCT, "New product\tCtrl-D");
 
 	wxMenu* Help = new wxMenu;
 	Help->Append(wxID_ABOUT);
 
 
+	wxMenu* window = new wxMenu;
+	window->Append(wxID_ANY, "product display");
+	window->Append(ID_CATGORY_WINDOW, "product categories");
+
 	menubar->Append(file, wxT("&File"));
 	menubar->Append(products, wxT("&Products"));
 	menubar->Append(Help, wxT("Help"));
+	menubar->Append(window, wxT("Window"));
 	SetMenuBar(menubar);
 }
 
@@ -105,25 +119,19 @@ void MainFrame::CreateStatusBar()
 void MainFrame::CreateProductList()
 {
 	mProductList.reset(new ProductList(this, ID_PRODUCT_LIST, wxDefaultPosition, wxDefaultSize));
-	mFrameManager->AddPane(mProductList.get(), wxAuiPaneInfo().Name("Product list").Caption("ProductList").CenterPane().Show());
+	mFrameManager->AddPane(mProductList.get(), wxAuiPaneInfo().Name("Product list").Caption("Product list").CenterPane().Show());
 }
 
 void MainFrame::CreateCategoryList()
 {
 	mCategoryList.reset(new wxListBox(this, ID_CATEGORY_LIST));
-	mFrameManager->AddPane(mCategoryList.get(), wxAuiPaneInfo().Name("Category list").Caption(wxT("Categories")).MinSize(wxSize(180, 180)).Left().Layer(0));
+	mFrameManager->AddPane(mCategoryList.get(), wxAuiPaneInfo().Name("Category list").Caption(wxT("Product Categories")).MinSize(wxSize(180, 180)).Floatable(true).Left().Layer(0));
 }
 
-void MainFrame::CreateProductEntry()
-{
-	mFrameManager->AddPane(new ProductEntry(this, wxID_ANY),
-		wxAuiPaneInfo().Name("Product Entry").Caption("Product Entry").Dockable(false).Float().Hide());
-}
-
-void MainFrame::SavePerspective()
+void MainFrame::SaveAppConfig()
 {
 	std::string perspective = mFrameManager->SavePerspective().ToStdString();
-	(*mPLConfig)["APP_PERSPECTIVE"] = perspective;
+	mPLConfig->InsertConfig("APP_PERSPECTIVE", perspective);
 }
 
 void MainFrame::CreateDefaultArtSettings()
@@ -131,7 +139,7 @@ void MainFrame::CreateDefaultArtSettings()
 	wxAuiDockArt* art = mFrameManager->GetArtProvider();
 	art->SetMetric(wxAUI_DOCKART_CAPTION_SIZE, 24);
 	art->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, wxAUI_GRADIENT_HORIZONTAL);
-	mFrameManager->SetFlags(mFrameManager->GetFlags() | wxAUI_MGR_LIVE_RESIZE | wxAUI_MGR_ALLOW_ACTIVE_PANE | wxAUI_MGR_VENETIAN_BLINDS_HINT);
+	mFrameManager->SetFlags(mFrameManager->GetFlags() | wxAUI_MGR_ALLOW_ACTIVE_PANE | wxAUI_MGR_VENETIAN_BLINDS_HINT);
 }
 
 void MainFrame::Load()
@@ -139,12 +147,25 @@ void MainFrame::Load()
 	mPLConfig->LoadConfigFile();
 	mProductList->LoadListDatabase();
 
+	//load the previous perspective
+	if (!(*mPLConfig)["APP_PERSPECTIVE"].empty())
+	{
+		mFrameManager->LoadPerspective((*mPLConfig)["APP_PERSPECTIVE"]);
+	}
+
+
 	if (mProductList->GetErrorCode() == ProductList::NO_PL_ERROR)
 	{
 		//inform the category list that a load has happend
+		mCategoryList->AppendAndEnsureVisible(std::string("All categories"));
 		std::list<std::string> categoryList;
 		mProductList->GetCategoryList(categoryList);
-
+		for (auto& i : categoryList)
+		{
+			mCategoryList->AppendAndEnsureVisible(i);
+		}
+		//one after all categories
+		mCategoryList->SetSelection(1);
 	}
 }
 
@@ -154,11 +175,13 @@ void MainFrame::OnIdle(wxIdleEvent& event)
 
 void MainFrame::OnClose(wxCloseEvent& event)
 {
+	if(wxMessageBox("Are you sure you want to quit, do not forget to save", "Quit?", wxYES | wxNO | wxICON_INFORMATION) == wxNO)
+	{
+		return;
+	}
 	//check for clean up and save 
-	//SavePerspective();
-	//mPLConfig->SaveConFigFile();
-
-
+	SaveAppConfig();
+	mPLConfig->SaveConFigFile();
 	event.Skip();
 }
 
@@ -166,12 +189,12 @@ void MainFrame::OnSave(wxCommandEvent& event)
 {
 	//write the category and product count to the config
 	mProductList->SaveDatabase();
-	wxMessageBox("Saving", "Save", wxOK);
+	wxMessageBox("Saved", "Save", wxOK);
 }
 
 void MainFrame::OnLoad(wxCommandEvent& event)
 {
-	wxMessageBox("loading", "load", wxOK);
+	
 }
 
 void MainFrame::OnNew(wxCommandEvent& event)
@@ -204,38 +227,31 @@ void MainFrame::OnBack(wxCommandEvent& event)
 
 void MainFrame::OnAddProduct(wxCommandEvent& event)
 {
-	wxAuiPaneInfo& info = mFrameManager->GetPane(wxT("Product Entry")).Float().Show();
-	if (info.floating_pos == wxDefaultPosition) info.FloatingPosition(GetStartPosition());
-	mFrameManager->Update();
+	ProductItem item;
+	ProductDialog dlg(&item, this);
+	std::list<std::string> mCategories;
 
-}
-
-void MainFrame::OnProductAdded(wxCommandEvent& evnt)
-{
-
-	wxAuiPaneInfo& info = mFrameManager->GetPane(wxT("Product Entry")).Float().Hide();
-	mFrameManager->Update();
-	ProductEntry* entry = wxDynamicCast(info.window, ProductEntry);
-	
-	if (entry != NULL)
+	//load the drop down, 
+	mProductList->GetCategoryList(mCategories);
+	for (auto& i : mCategories)
 	{
-		//get entry data
-	    //update the productlist database and view
-		ProductItem item;
-		entry->GetData(item.ProductName(), item.ProductActiveIng(), item.ProductDesc(), item.CategoryName(), item.DirForUse());
+		dlg.GetCategoryControl()->AppendString(i);
+	}
+	auto i = dlg.GetCategoryControl()->FindString(mProductList->GetCurrentCategory());
+	dlg.GetCategoryControl()->SetSelection(i);
+	if (dlg.ShowModal() == wxID_OK)
+	{
 		std::uint64_t id = ProductItem::IdGen::GetID();
 		item.Id() = id;
 		if (mProductList->AddItem(item.CategoryName(), item))
 		{
-			entry->AddCategory(item.CategoryName());
-			entry->Clear();
+			//if we have a display product pane load the page with the item that was just added
 		}
 		else
 		{
-			wxMessageBox("Failed", "Successful", wxOK, this);
+			wxMessageBox("Failed", "Addition status", wxOK, this);
 		}
 
-		//update the category
 		int index = mCategoryList->FindString(item.CategoryName());
 		if (index == wxNOT_FOUND)
 		{
@@ -245,14 +261,35 @@ void MainFrame::OnProductAdded(wxCommandEvent& evnt)
 		{
 			mCategoryList->SetSelection(index);
 		}
+
 	}
-	
-
-
 }
+
 
 void MainFrame::OnRemoveProduct(wxCommandEvent& event)
 {
+	auto category = mProductList->GetCurrentCategory();
+	if (!category.empty())
+	{
+		auto listView = mProductList->GetListControl();
+		auto model = listView->GetModel();
+		auto selItem = listView->GetCurrentItem();
+		if (selItem.IsOk())
+		{
+			wxVariant itemDataName, itemDataCategory;
+			model->GetValue(itemDataName, selItem, 0);
+			model->GetValue(itemDataCategory, selItem, 2);
+			//remove from the store and the view
+			mProductList->RemoveItem(mProductList->GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString()));
+
+			//lol 
+			listView->DeleteItem(listView->ItemToRow(selItem));
+		}
+		else
+		{
+			wxMessageBox("No product selected", "Remove product");
+		}
+	}
 }
 
 void MainFrame::OnProductRemoved(wxCommandEvent& evnt)
@@ -270,12 +307,6 @@ void MainFrame::OnAddCategory(wxCommandEvent& event)
 			if (mProductList->CreateCategory(value))
 			{
 				mCategoryList->AppendString(value);
-				ProductEntry* entry = wxDynamicCast(mFrameManager->GetPane("Product Entry").window,ProductEntry);
-				if (entry)
-				{
-					entry->AddCategory(value);
-					entry->Clear();
-				}
 			}
 			else
 			{
@@ -292,20 +323,35 @@ void MainFrame::OnAddCategory(wxCommandEvent& event)
 
 void MainFrame::OnRemoveCategory(wxCommandEvent& event)
 {
+	int selection = mCategoryList->GetSelection();
+	if (selection != wxNOT_FOUND)
+	{
+		auto category = mCategoryList->GetString(selection);
+		if (category != "All categories")
+		{
+			wxString message = wxString("Do you want to remove category \" ") + category + " \" and all it\'s products";
+			if (wxMessageBox(message, "Remove category", wxYES | wxNO | wxICON_INFORMATION) == wxYES)
+			{
+				mProductList->OnCategoryRemoved(category.ToStdString());
+				mCategoryList->Delete(selection);
+			}
+		}
+		else
+		{
+			wxMessageBox("Trying to delete all categories", "Remove category", wxOK | wxICON_ERROR);
+		}
+	}
+	else
+	{
+		wxMessageBox("No category selected", "Remove category");
+	}
 }
 
-void MainFrame::OnProductEntryCancelled(wxCommandEvent& event)
-{
-	wxAuiPaneInfo& info = mFrameManager->GetPane(wxT("Product Entry")).Float().Hide();
-	mFrameManager->Update();
-	ProductEntry* entry = wxDynamicCast(info.window, ProductEntry);
-	entry->Clear();
-}
 
 void MainFrame::OnAbout(wxCommandEvent& event)
 {
 	wxAboutDialogInfo info;
-	info.SetName(wxT("Dglopa pharamcy management system"));
+	info.SetName(wxT("Dglopa pharamcy stock manager"));
 	info.SetVersion(wxT("0.0.0 pre beta"));
 	info.SetDescription(wxT("Pharmacy mamagement system aid in the managment of pharmaceutical products"));
 	info.SetCopyright(wxT("(C) 2021 Afrobug Software"));
@@ -320,6 +366,15 @@ void MainFrame::OnCategoryListSelection(wxCommandEvent& event)
 	if (mProductList->GetCurrentCategory() != category)
 	{
 		mProductList->OnCategoryChange(category);
+	}
+}
+
+void MainFrame::OnCategoryWindow(wxCommandEvent& event)
+{
+	if (!mFrameManager->GetPane("Category list").IsShown())
+	{
+		mFrameManager->GetPane(wxT("Category list")).Show();
+		mFrameManager->Update();
 	}
 }
 

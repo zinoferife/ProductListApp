@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <string>
 #include <iostream>
+#include <list>
+#include <algorithm>
 
 //entity that represents a single product in the application
 class ProductItem
@@ -23,6 +25,7 @@ public:
 		const std::string& CategoryName,
 		const std::string& ProductDesc,
 		const std::string& DirForUse,
+		const std::string& ProductClass,
 		std::uint32_t stockCount,
 		float uintPrice);
 
@@ -72,12 +75,24 @@ public:
 	inline float GetUnitPrice() const { return mUnitPrice; }
 	float& UnitPrice() { return mUnitPrice; }
 
+	std::uint64_t GetID() const { return mProductID; }
 	inline std::uint64_t& Id() { return mProductID; }
-	std::uint64_t GetID() { return mProductID; }
 
+	inline const std::string& GetProductClass() const { return mProductClass; }
+	inline std::string& ProductClass() { return mProductClass; }
+
+	const std::list<std::string>& GetHealthTag() const { return mHealthTag; }
+	std::list<std::string>& HealthTag() { return mHealthTag; }
 
 
 	bool IsEmpty() const;
+
+public:
+	//Health tag management
+	void AddTag(const std::string& tag);
+	void RemoveTag(const std::string& tag);
+	void WriteTag(std::ostream& os) const;
+	void ReadTag(std::istream& os);
 
 private:
 
@@ -87,8 +102,15 @@ private:
 	std::string mCategoryName;
 	std::string mProductDesc;
 	std::string mDirForUse;
+	std::string mProductClass;
 	std::uint32_t mStockCount;
 	float mUnitPrice;	
+
+private:
+	//Health tags: possible conditions that this product is used to threat
+	std::list<std::string> mHealthTag;
+
+
 
 private:
 	//settings and debug

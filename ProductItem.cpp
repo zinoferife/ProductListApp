@@ -6,8 +6,8 @@ ProductItem::ProductItem()
 mStockCount{ 0 }, mUnitPrice{0.0}{
 }
 
-ProductItem::ProductItem(std::uint64_t id, const std::string& ProductName, const std::string& productActIng, const std::string& CategoryName, const std::string& ProductDesc, const std::string& DirForUse, std::uint32_t stockCount, float unitPrice)
-	: mProductID{id}, mProductName(ProductName), mProductActiveIngredent(productActIng), mCategoryName(CategoryName), mProductDesc(ProductDesc), mDirForUse(DirForUse), mStockCount(stockCount), mUnitPrice(unitPrice) {
+ProductItem::ProductItem(std::uint64_t id, const std::string& ProductName, const std::string& productActIng, const std::string& CategoryName, const std::string& ProductDesc, const std::string& DirForUse, const std::string& ProductClass, std::uint32_t stockCount, float unitPrice)
+	: mProductID{id}, mProductName(ProductName), mProductActiveIngredent(productActIng), mCategoryName(CategoryName), mProductDesc(ProductDesc), mDirForUse(DirForUse), mProductClass(ProductClass), mStockCount(stockCount), mUnitPrice(unitPrice) {
 }
 
 ProductItem::~ProductItem()
@@ -30,6 +30,7 @@ ProductItem& ProductItem::operator=(const ProductItem& product)
 	mCategoryName = product.mCategoryName;
 	mProductDesc = product.mProductDesc;
 	mDirForUse = product.mDirForUse;
+	mProductClass = product.mProductClass;
 	mStockCount = product.mStockCount;
 	mUnitPrice = product.mUnitPrice;
 	return(*this);
@@ -48,6 +49,7 @@ ProductItem& ProductItem::operator=(const ProductItem&& product) noexcept
 	mCategoryName = std::move(product.mCategoryName);
 	mProductDesc = std::move(product.mProductDesc);
 	mDirForUse = std::move(product.mDirForUse);
+	mProductClass = std::move(product.mProductClass);
 	mStockCount = product.mStockCount;
 	mUnitPrice = product.mUnitPrice;
 	return (*this);
@@ -92,6 +94,7 @@ ProductItem::ProductItem(const ProductItem& product)
 	mCategoryName = product.mCategoryName;
 	mProductDesc = product.mProductDesc;
 	mDirForUse = product.mDirForUse;
+	mProductClass = product.mProductClass;
 	mStockCount = product.mStockCount;
 	mUnitPrice = product.mUnitPrice;
 }
@@ -103,6 +106,7 @@ ProductItem::ProductItem(ProductItem&& product) noexcept
 	mProductActiveIngredent = std::move(product.mProductActiveIngredent);
 	mProductDesc = std::move(product.mProductDesc);
 	mDirForUse = std::move(product.mDirForUse);
+	mProductClass = std::move(product.mProductClass);
 	mStockCount = product.mStockCount;
 	mUnitPrice = product.mUnitPrice;
 
@@ -116,6 +120,7 @@ std::size_t ProductItem::GetMemSpace()
 	bytes += sizeof(std::string::value_type) * mCategoryName.size();
 	bytes += sizeof(std::string::value_type) * mProductDesc.size();
 	bytes += sizeof(std::string::value_type) * mDirForUse.size();
+	bytes += sizeof(std::string::value_type) * mProductClass.size();
 	bytes += sizeof(std::uint32_t);
 	bytes += sizeof(float);
 	return bytes;
@@ -124,6 +129,54 @@ std::size_t ProductItem::GetMemSpace()
 bool ProductItem::IsEmpty() const 
 {
 	return (mProductID == 0);
+}
+
+void ProductItem::AddTag(const std::string& tag)
+{
+	if (!tag.empty()) mHealthTag.push_back(tag);
+}
+
+void ProductItem::RemoveTag(const std::string& tag)
+{
+	if (!tag.empty())
+	{
+		//linear search complexity, the list is a small list removing that expensive relax
+		auto iterWhere = std::find(mHealthTag.begin(), mHealthTag.end(), tag);
+		mHealthTag.erase(iterWhere);
+	}
+}
+
+void ProductItem::WriteTag(std::ostream& os) const
+{
+	if (!mHealthTag.empty())
+	{
+		//write the size
+		os << mHealthTag.size();
+		for (auto& i : mHealthTag)
+		{
+			const size_t bytes = sizeof(std::string::value_type) * i.size();
+			os << bytes;
+			os.write(i.data(), bytes);
+		}
+	}
+}
+
+void ProductItem::ReadTag(std::istream& os)
+{
+	std::size_t listSize, strSize;
+	char* buffer = new char[256];
+	os >> listSize;
+	for (int i = 0; i < listSize; i++)
+	{
+		os >> strSize;
+		if (strSize >= 256) strSize = 255;
+		memset(buffer, '\0', 256);
+		os.read(buffer, strSize);
+		mHealthTag.push_back(std::string(buffer));
+	}
+
+	delete[] buffer;
+	return;
 }
 
 
@@ -155,11 +208,18 @@ std::ostream& operator<<(std::ostream& os, const ProductItem& item)
 	os << bytes;
 	os.write(item.mDirForUse.data(), bytes);
 
+
+	bytes = sizeof(std::string::value_type) * item.mProductClass.size();
+	os << bytes;
+	os.write(item.mProductClass.data(), bytes);
+
 	bytes = sizeof(std::uint32_t);
 	os.write((const char*)& item.mStockCount, bytes);
 
 	bytes = sizeof(float);
 	os.write((const char*)& item.mUnitPrice, bytes);
+
+	//item.WriteTag(os);
 
 	return os;
 }
@@ -173,34 +233,40 @@ std::istream& operator>>(std::istream& os, ProductItem& item)
 	os.read((char*)&item.mProductID, bytes);
 
 	os >> bytes;
-	if(bytes >= 256) bytes = 256;
+	if(bytes >= 256) bytes = 255;
 	memset(buffer, '\0', 256);
 	os.read(buffer, bytes);
 	item.mProductName = std::string(buffer);
 
 	os >> bytes;
-	if(bytes >= 256) bytes = 256;
+	if(bytes >= 256) bytes = 255;
 	memset(buffer, '\0', 256);
 	os.read(buffer, bytes);
 	item.mProductActiveIngredent = std::string(buffer);
 
 	os >> bytes;
-	if(bytes >= 256) bytes = 256;
+	if(bytes >= 256) bytes = 255;
 	memset(buffer, '\0', 256);
 	os.read(buffer, bytes);
 	item.mCategoryName = std::string(buffer);
 
 	os >> bytes;
-	if(bytes >= 256) bytes = 256;
+	if(bytes >= 256) bytes = 255;
 	memset(buffer, '\0', 256);
 	os.read(buffer, bytes);
 	item.mProductDesc = std::string(buffer);
 
 	os >> bytes;
-	if(bytes >= 256) bytes = 256;
+	if(bytes >= 256) bytes = 255;
 	memset(buffer, '\0', 256);
 	os.read(buffer, bytes);
 	item.mDirForUse = std::string(buffer);
+
+	os >> bytes;
+	if (bytes >= 256) bytes = 255;
+	memset(buffer, '\0', 256);
+	os.read(buffer, bytes);
+	item.mProductClass = std::string(buffer);
 
 	bytes = sizeof(std::uint32_t);
 	os.read((char*)& item.mStockCount, bytes);
@@ -208,6 +274,10 @@ std::istream& operator>>(std::istream& os, ProductItem& item)
 	bytes = sizeof(float);
 	os.read((char*)& item.mUnitPrice, bytes);
 
+	//item.ReadTag(os);
+
+
+	delete[] buffer;
 	return os;
 
 }
