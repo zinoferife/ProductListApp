@@ -38,7 +38,7 @@ public:
 	virtual bool TransferDataToWindow() override;
 
 	inline wxComboBox* GetCategoryControl() { return mProductCategoryCtrl; }
-
+	inline wxChoice* GetProductClassControl() { return mProductClassCtrl; }
 private:
 	//dialog data
 	ProductItem* mItemDataRef;

@@ -33,6 +33,7 @@ ProductItem& ProductItem::operator=(const ProductItem& product)
 	mProductClass = product.mProductClass;
 	mStockCount = product.mStockCount;
 	mUnitPrice = product.mUnitPrice;
+	mHealthTag = product.mHealthTag;
 	return(*this);
 }
 
@@ -52,6 +53,7 @@ ProductItem& ProductItem::operator=(const ProductItem&& product) noexcept
 	mProductClass = std::move(product.mProductClass);
 	mStockCount = product.mStockCount;
 	mUnitPrice = product.mUnitPrice;
+	mHealthTag = product.mHealthTag;
 	return (*this);
 }
 
@@ -97,6 +99,7 @@ ProductItem::ProductItem(const ProductItem& product)
 	mProductClass = product.mProductClass;
 	mStockCount = product.mStockCount;
 	mUnitPrice = product.mUnitPrice;
+	mHealthTag = product.mHealthTag;
 }
 
 ProductItem::ProductItem(ProductItem&& product) noexcept
@@ -109,6 +112,7 @@ ProductItem::ProductItem(ProductItem&& product) noexcept
 	mProductClass = std::move(product.mProductClass);
 	mStockCount = product.mStockCount;
 	mUnitPrice = product.mUnitPrice;
+	mHealthTag = product.mHealthTag;
 
 }
 
@@ -151,11 +155,12 @@ void ProductItem::WriteTag(std::ostream& os) const
 	if (!mHealthTag.empty())
 	{
 		//write the size
-		os << mHealthTag.size();
+		std::size_t size = mHealthTag.size();
+		os.write((const char*)& size, sizeof(std::size_t));
 		for (auto& i : mHealthTag)
 		{
 			const size_t bytes = sizeof(std::string::value_type) * i.size();
-			os << bytes;
+			os.write((const char*)& bytes, sizeof(std::size_t));
 			os.write(i.data(), bytes);
 		}
 	}
@@ -163,12 +168,12 @@ void ProductItem::WriteTag(std::ostream& os) const
 
 void ProductItem::ReadTag(std::istream& os)
 {
-	std::size_t listSize, strSize;
+	std::size_t listSize = 0, strSize = 0;
 	char* buffer = new char[256];
-	os >> listSize;
+	os.read((char*)& listSize, sizeof(std::size_t));
 	for (int i = 0; i < listSize; i++)
 	{
-		os >> strSize;
+		os.read((char*)& strSize, sizeof(std::size_t));
 		if (strSize >= 256) strSize = 255;
 		memset(buffer, '\0', 256);
 		os.read(buffer, strSize);
@@ -219,7 +224,7 @@ std::ostream& operator<<(std::ostream& os, const ProductItem& item)
 	bytes = sizeof(float);
 	os.write((const char*)& item.mUnitPrice, bytes);
 
-	//item.WriteTag(os);
+	item.WriteTag(os);
 
 	return os;
 }
@@ -274,7 +279,7 @@ std::istream& operator>>(std::istream& os, ProductItem& item)
 	bytes = sizeof(float);
 	os.read((char*)& item.mUnitPrice, bytes);
 
-	//item.ReadTag(os);
+	item.ReadTag(os);
 
 
 	delete[] buffer;

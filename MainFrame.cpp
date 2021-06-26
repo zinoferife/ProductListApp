@@ -8,16 +8,17 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_MENU(wxID_OPEN, MainFrame::OnLoad)
 	EVT_MENU(wxID_SAVE, MainFrame::OnSave)
 	EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
-	EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnAddCategory)
-	EVT_MENU(ID_CATGORY_WINDOW, MainFrame::OnCategoryWindow)
-	EVT_MENU(ID_NEW_PRODUCT, MainFrame::OnAddProduct)
-	EVT_TOOL(ID_TOOL_BACK, MainFrame::OnBack)
-	EVT_TOOL(ID_TOOL_FRONT, MainFrame::OnNext)
-	EVT_TOOL(ID_TOOL_ADD_PRODUCT, MainFrame::OnAddProduct)
-	EVT_TOOL(ID_TOOL_ADD_CATEGORY, MainFrame::OnAddCategory)
-	EVT_TOOL(ID_TOOL_REMOVE_PRODUCT, MainFrame::OnRemoveProduct)
-	EVT_TOOL(ID_TOOL_REMOVE_CATEGORY, MainFrame::OnRemoveCategory)
-	EVT_LISTBOX_DCLICK(ID_CATEGORY_LIST, MainFrame::OnCategoryListSelection)
+	EVT_MENU(MainFrame::ID_NEW_CATEGORY, MainFrame::OnAddCategory)
+	EVT_MENU(MainFrame::ID_CATGORY_WINDOW, MainFrame::OnCategoryWindow)
+	EVT_MENU(MainFrame::ID_NEW_PRODUCT, MainFrame::OnAddProduct)
+	EVT_MENU(MainFrame::ID_PRODUCT_DISPLAY, MainFrame::OnProductDisplay)
+	EVT_TOOL(MainFrame::ID_TOOL_BACK, MainFrame::OnBack)
+	EVT_TOOL(MainFrame::ID_TOOL_FRONT, MainFrame::OnNext)
+	EVT_TOOL(MainFrame::ID_TOOL_ADD_PRODUCT, MainFrame::OnAddProduct)
+	EVT_TOOL(MainFrame::ID_TOOL_ADD_CATEGORY, MainFrame::OnAddCategory)
+	EVT_TOOL(MainFrame::ID_TOOL_REMOVE_PRODUCT, MainFrame::OnRemoveProduct)
+	EVT_TOOL(MainFrame::ID_TOOL_REMOVE_CATEGORY, MainFrame::OnRemoveCategory)
+	EVT_LISTBOX_DCLICK(MainFrame::ID_CATEGORY_LIST, MainFrame::OnCategoryListSelection)
 END_EVENT_TABLE()
 
 
@@ -60,6 +61,7 @@ bool MainFrame::InitCreation()
 	CreateToolBar();
 	CreateProductList();
 	CreateCategoryList();
+	CreateProductDisplay();
 	CreateDefaultArtSettings();
 	mFrameManager->Update();
 	return true;
@@ -101,7 +103,7 @@ void MainFrame::CreateMenuBar()
 
 
 	wxMenu* window = new wxMenu;
-	window->Append(wxID_ANY, "product display");
+	window->Append(ID_PRODUCT_DISPLAY, "product display \tCtrl-G");
 	window->Append(ID_CATGORY_WINDOW, "product categories");
 
 	menubar->Append(file, wxT("&File"));
@@ -142,10 +144,23 @@ void MainFrame::CreateDefaultArtSettings()
 	mFrameManager->SetFlags(mFrameManager->GetFlags() | wxAUI_MGR_ALLOW_ACTIVE_PANE | wxAUI_MGR_VENETIAN_BLINDS_HINT);
 }
 
+void MainFrame::CreateProductDisplay()
+{
+	mProductDisplay.reset(new wxHtmlWindow(this, ID_PRODUCT_DISPLAY_WIN));
+	mFrameManager->AddPane(mProductDisplay.get(),wxAuiPaneInfo().Name("Product display").Caption("Product display").Left().BestSize(wxSize(300,-1)).Hide());
+}
+
 void MainFrame::Load()
 {
 	mPLConfig->LoadConfigFile();
 	mProductList->LoadListDatabase();
+
+	std::string file = wxGetApp().mApplicationPath.ToStdString() + "\\test.txt";
+	std::fstream pFile(file, std::ios::in | std::ios::binary);
+	if (pFile.is_open())
+	{
+		wxMessageBox("open test");
+	}
 
 	//load the previous perspective
 	if (!(*mPLConfig)["APP_PERSPECTIVE"].empty())
@@ -378,6 +393,29 @@ void MainFrame::OnCategoryWindow(wxCommandEvent& event)
 	}
 }
 
+void MainFrame::OnProductDisplay(wxCommandEvent& event)
+{
+	//get the item from store
+	auto item = mProductList->GetListControl()->GetCurrentItem();
+	if (item.IsOk())
+	{
+		const ProductItem& product = mProductList->GetFromDataView(item);
+		mProductDisplay->SetPage(ProductDisplayText(product));
+		
+
+		//display the product
+		mFrameManager->GetPane("Product display").Show();
+		mFrameManager->Update();
+	}
+	else
+	{
+		wxMessageBox("No product selected", "Product display");
+		return;
+	}
+
+
+}
+
 void MainFrame::OnEraseBackground(wxEraseEvent& event)
 {
 	event.Skip();
@@ -389,4 +427,29 @@ wxPoint MainFrame::GetStartPosition()
 	x += 20;
 	wxPoint pt = ClientToScreen(wxPoint(0, 0));
 	return wxPoint(pt.x + x, pt.y + x);
+}
+
+wxString MainFrame::ProductDisplayText(const ProductItem& item)
+{
+	std::stringstream htmlData;
+	htmlData << "<html><body>";
+	htmlData << "<h3>" << item.GetProductName() << "</h3>";
+	htmlData << "<br><b>Active ingredent: " << item.GetProductActIng() << "</b><br>";
+	htmlData << "<br><b> Class: " << item.GetProductClass() << " Category: " << item.GetCategoryName() << "</b><br>";
+	htmlData << "<br/><b>Product description</b><br>";
+	htmlData << "<p>" << item.GetProdcutDesc() << "</p>";
+	htmlData << "<p></p>";
+	htmlData << "<br/><b>Direction for use</b><br>";
+	htmlData << "<p>" << item.GetDirForUse() << "</p>";
+	htmlData << "<p></p>";
+	htmlData << "<p><b> Health conditions</b><p>";
+	htmlData << "<ul>";
+	for (auto& i : item.GetHealthTag())
+	{
+		htmlData << "<li>" << i << "</li>";
+	}
+	htmlData << "</ui>";
+	htmlData << "</body></html>";
+
+	return wxString(htmlData.str());
 }

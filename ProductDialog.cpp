@@ -15,7 +15,7 @@ ProductDialog::ProductDialog()
 
 ProductDialog::ProductDialog(ProductItem* item, wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& position, const wxSize& size, long style)
 : mItemDataRef(item){
-	Init();
+	//Init();
 	Create(parent, id, caption, position, size, style);
 
 }
@@ -70,12 +70,13 @@ bool ProductDialog::TransferDataToWindow()
 {
 	mProductNameCtrl->SetValue(mItemDataRef->ProductName());
 	mProductActiveIngredentCtrl->SetValue(mItemDataRef->ProductActiveIng());
-	//mProductCategoryCtrl->SetValue(mItemDataRef->CategoryName());
 	mProductDescCtrl->SetValue(mItemDataRef->ProductDesc());
 	mProductDirForUseCtrl->SetValue(mItemDataRef->DirForUse());
-	//mProductClassCtrl->SetSelection(choices.Index(mItemDataRef->ProductClass()));
+
+	//might cause a problem due to non numeric characters 
 	mProductStockCtrl->SetValue(std::to_string(mItemDataRef->StockCount()));
 	mProductUnitPriceCtrl->SetValue(std::to_string(mItemDataRef->UnitPrice()));
+	mTaglist = mItemDataRef->GetHealthTag();
 	return true;
 }
 

@@ -21,8 +21,12 @@ END_EVENT_TABLE()
 
 void HealthTag::OnAddButton(wxCommandEvent& event)
 {
-	mHealthTagList->AppendAndEnsureVisible(mTagEntryText->GetValue());
-	mTagEntryText->Clear();
+	wxString value = mTagEntryText->GetValue();
+	if (!value.IsEmpty())
+	{
+		mHealthTagList->AppendAndEnsureVisible(mTagEntryText->GetValue());
+		mTagEntryText->Clear();
+	}
 }
 
 void HealthTag::OnOkButton(wxCommandEvent& event)
@@ -100,6 +104,8 @@ HealthTag::HealthTag( std::list<std::string>& list, wxWindow* parent, wxWindowID
 	bSizer1 = new wxBoxSizer( wxVERTICAL );
 
 	bSizer2 = new wxBoxSizer( wxHORIZONTAL );
+
+	bSizer1->Add(new wxStaticText(this, wxID_ANY, wxT("Please enter health conditions associated with this product:")), 0, wxALIGN_LEFT | wxALL, 5);
 
 	mTagEntryText = new wxTextCtrl( this, ID_TEXT_ENTRY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
 	mTagEntryText->SetToolTip( wxT("Enter health conditions that this product acts on") );

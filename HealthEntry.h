@@ -24,6 +24,7 @@
 #include <wx/sizer.h>
 #include <wx/listbox.h>
 #include <wx/dialog.h>
+#include <wx/stattext.h>
 #include <list>
 ///////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +64,7 @@ class HealthTag : public wxDialog
 		DECLARE_EVENT_TABLE()
 	public:
 
-		HealthTag(std::list<std::string>& list,  wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Health conditions"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 408,299 ), long style = wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxSTAY_ON_TOP|wxSYSTEM_MENU );
+		HealthTag(std::list<std::string>& list,  wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Health conditions"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 408,299 ), long style = wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE| wxSYSTEM_MENU );
 		~HealthTag();
 
 };

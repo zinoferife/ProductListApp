@@ -8,6 +8,8 @@
 #include <wx/aui/auibar.h>
 #include <wx/listctrl.h>
 #include <wx/aboutdlg.h>
+#include <wx/html/htmlwin.h>
+
 
 #include <fstream>
 #include <sstream>
@@ -41,13 +43,18 @@ public:
 		ID_TOOL_USER,
 		ID_PRODUCT_LIST,
 		ID_CATEGORY_LIST,
-		ID_TOOL_DOWNLOAD_DATA
+		ID_TOOL_DOWNLOAD_DATA,
+		ID_PRODUCT_DISPLAY,
+		ID_PRODUCT_DISPLAY_WIN
 	};
 
 	MainFrame(wxWindow* parent, wxWindowID id, const wxPoint& position, const wxSize& size);
 	~MainFrame();
 	void Load();
 	bool isCreated;
+
+	//hack so that Product list can forward
+	void OnProductDisplay(wxCommandEvent& event);
 private:
 	//creation functions
 	bool InitCreation();
@@ -60,6 +67,7 @@ private:
 	void CreateCategoryList();
 	void SaveAppConfig();
 	void CreateDefaultArtSettings();
+	void CreateProductDisplay();
 
 private:
 	//event handlers
@@ -83,7 +91,6 @@ private:
 	void OnAbout(wxCommandEvent& event);
 	void OnCategoryListSelection(wxCommandEvent& event);
 	void OnCategoryWindow(wxCommandEvent& event);
-
 	//erase
 	void OnEraseBackground(wxEraseEvent& event);
 
@@ -93,9 +100,11 @@ private:
 	std::unique_ptr<ProductList> mProductList;
 	std::unique_ptr<wxListBox> mCategoryList;
 	std::unique_ptr<PLConfig> mPLConfig;
+	std::unique_ptr<wxHtmlWindow> mProductDisplay;
 
 
 	wxPoint GetStartPosition();
+	wxString ProductDisplayText(const ProductItem& item);
 	DECLARE_EVENT_TABLE()
 
 };

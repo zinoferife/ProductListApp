@@ -22,6 +22,7 @@
 #include "ProductDialog.h"
 
 
+
 class ProductList : public wxPanel
 {
 public:
@@ -44,7 +45,7 @@ public:
 		DATABASE_SAVE_FAIL,
 		ID_CONTEXT_REMOVE,
 		ID_CONTEXT_EDIT,
-		ID_CONTEXT_ADD
+		ID_CONTEXT_DISPLAY
 	};
 	typedef std::unordered_map < std::string, std::set<ProductItem> > StoreType;
 	typedef StoreType::iterator StoreIterator;
@@ -61,7 +62,7 @@ public:
 
 
 	const ProductItem& GetItem(const std::string& ProductName, const std::string& Category) const;
-
+	const ProductItem& GetFromDataView(wxDataViewItem& item);
 	
 	void LoadListDatabase();
 	void SaveDatabase();
@@ -74,9 +75,11 @@ public:
 
 public:
 	//GUI
+	void PlugViewEventHandlers();
 	void CreateListView();
 	std::shared_ptr<wxDataViewListCtrl> GetListControl();
 	void AppendToViewList(const ProductItem& item);
+	void RemoveFromViewList(ProductItem& item);
 	void ShowAll();
 
 public:
@@ -110,10 +113,13 @@ public:
 
 
 	//context menu
-	void OnContextMenu(wxContextMenuEvent& event);
-	void OnContextAdd(wxCommandEvent& event);
+	void OnContextMenu(wxDataViewEvent& event);
 	void OnContextRemove(wxCommandEvent& event);
 	void OnContextEdit(wxCommandEvent& event);
+	void OnContextDisplay(wxCommandEvent& event);
+
+	//test command
+
 
 private:
 	StoreType mItemStore;
@@ -129,6 +135,8 @@ private:
 	ProductItem mEmptyProduct;
 	std::uint32_t mPLErrorCode;
 	std::string mDatabasePath;
+
+	std::string& FormatProductName(std::string& value);
 
 
 	//editing system

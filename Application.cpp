@@ -84,13 +84,13 @@ bool Application::OnInit()
 	mApplicationPath = wxFindAppPath(argv[0], curDir, wxT("DPROLIST"), wxT("Dglopa Product list"));
 	
 	//create main app frame
-	MainFrame* frame = new MainFrame(NULL, MAIN_FRAME, wxDefaultPosition, wxSize(1000,600));
-	if (!frame->isCreated)
+	mFrame = new MainFrame(NULL, MAIN_FRAME, wxDefaultPosition, wxSize(1000,600));
+	if (!mFrame->isCreated)
 	{
 		return false;
 	}
-	frame->CenterOnScreen();
-	frame->Show(true);
-	frame->Load();
+	mFrame->CenterOnScreen();
+	mFrame->Show(true);
+	mFrame->Load();
 	return true;
 }

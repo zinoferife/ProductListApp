@@ -18,6 +18,7 @@ public:
 	Application();
 	virtual bool OnInit() override;
 	wxString mApplicationPath;
+	MainFrame* mFrame;
 
 };
 
