@@ -9,6 +9,7 @@
 #include <string>
 #include "ProductItem.h"
 #include "HealthEntry.h"
+#include "TextAutoComplete.h"
 
 class ProductDialog : public wxDialog
 {

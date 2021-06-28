@@ -11,6 +11,7 @@
 IMPLEMENT_ABSTRACT_CLASS(HealthTag,wxDialog)
 BEGIN_EVENT_TABLE(HealthTag, wxDialog)
 	EVT_BUTTON(ID_ADD_BUTTON,HealthTag::OnAddButton)
+	EVT_BUTTON(ID_CLEAR_BUTTON,HealthTag::OnClearButton)
 	EVT_BUTTON(wxID_OK,HealthTag::OnOkButton)
 	EVT_TEXT_ENTER(ID_TEXT_ENTRY, HealthTag::OnAddButton)
 	EVT_CLOSE(HealthTag::OnClose)
@@ -48,6 +49,11 @@ void HealthTag::OnTagList(wxCommandEvent& event)
 	if(sel != wxNOT_FOUND) mHealthTagList->Delete(sel);
 }
 
+void HealthTag::OnClearButton(wxCommandEvent& event)
+{
+	mHealthTagList->Clear();
+}
+
 
 //TODO: the dialog is not sending the return code to the dialog
 void HealthTag::OnClose(wxCloseEvent& event)
@@ -80,6 +86,7 @@ void HealthTag::OnContextMenu(wxContextMenuEvent& event)
 
 bool HealthTag::TransferDataFromWindow()
 {
+	mData.clear();
 	for (int i = 0; i < mHealthTagList->GetCount(); i++)
 	{
 		mData.push_back(mHealthTagList->GetString(i).ToStdString());
@@ -113,9 +120,12 @@ HealthTag::HealthTag( std::list<std::string>& list, wxWindow* parent, wxWindowID
 	bSizer2->Add( mTagEntryText, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	mAddButton = new wxBitmapButton( this, ID_ADD_BUTTON, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
+	mClearButton = new wxBitmapButton( this, ID_CLEAR_BUTTON, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW|0 );
 
 	mAddButton->SetBitmap( wxArtProvider::GetBitmap("reply"));
+	mClearButton->SetBitmap( wxArtProvider::GetBitmap("delete"));
 	bSizer2->Add( mAddButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	bSizer2->Add( mClearButton, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 
 	bSizer1->Add( bSizer2, 0, wxALIGN_CENTER_HORIZONTAL|wxALL|wxEXPAND, 5 );

@@ -81,9 +81,26 @@ bool ProductDialog::TransferDataToWindow()
 }
 
 void ProductDialog::CreateControls()
+
 {
+	//dialog controls
+	choices.push_back("OTC");
+	choices.push_back("P");
+	choices.push_back("POM");
+
+	mProductClassCtrl = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices);
+	mProductClassCtrl->SetSelection(0);
+	mProductCategoryCtrl = new wxComboBox(this, wxID_ANY);
+	mProductNameCtrl = new wxTextCtrl(this, wxID_ANY);
+	mProductActiveIngredentCtrl = new wxTextCtrl(this, wxID_ANY);
+	mProductNameCtrl->AutoComplete(new TextAutoComplete);
 	wxCollapsiblePane* pane = new wxCollapsiblePane(this, wxID_ANY, "Add details");
 	wxWindow* wPane = pane->GetPane();
+	mProductDescCtrl = new wxTextCtrl(wPane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+	mProductDirForUseCtrl = new wxTextCtrl(wPane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+	mProductDirForUseCtrl->AutoComplete(new TextAutoComplete);
+	mProductUnitPriceCtrl = new wxTextCtrl(this, wxID_ANY);
+	mProductStockCtrl = new wxTextCtrl(this, wxID_ANY);
 
 	wxStaticText* descp[9] = {
 		new wxStaticText(this, wxID_ANY, wxT("Please enter a product to the system")),
@@ -96,22 +113,6 @@ void ProductDialog::CreateControls()
 		new wxStaticText(this, wxID_ANY, wxT("Product stock count:")),
 		new wxStaticText(this, wxID_ANY, wxT("Product class:"))
 	};
-	//dialog controls
-	mProductNameCtrl = new wxTextCtrl(this, wxID_ANY);
-	mProductCategoryCtrl = new wxComboBox(this, wxID_ANY);
-	choices;
-	choices.push_back("OTC");
-	choices.push_back("P");
-	choices.push_back("POM");
-
-	mProductClassCtrl = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices);
-	mProductClassCtrl->SetSelection(0);
-	mProductActiveIngredentCtrl = new wxTextCtrl(this, wxID_ANY);
-	mProductDescCtrl = new wxTextCtrl(wPane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-	mProductDirForUseCtrl = new wxTextCtrl(wPane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-	mProductUnitPriceCtrl = new wxTextCtrl(this, wxID_ANY);
-	mProductStockCtrl = new wxTextCtrl(this, wxID_ANY);
-
 
 	//create buttons
 	wxBitmapButton* reset = new wxBitmapButton(this, wxID_RESET, wxArtProvider::GetBitmap("minimize"));

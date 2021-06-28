@@ -45,7 +45,9 @@ public:
 		ID_CATEGORY_LIST,
 		ID_TOOL_DOWNLOAD_DATA,
 		ID_PRODUCT_DISPLAY,
-		ID_PRODUCT_DISPLAY_WIN
+		ID_PRODUCT_DISPLAY_WIN,
+		ID_CATEGORY_CONTEXT_REMOVE,
+		ID_CATEGORY_CONTEXT_RENAME
 	};
 
 	MainFrame(wxWindow* parent, wxWindowID id, const wxPoint& position, const wxSize& size);
@@ -91,6 +93,8 @@ private:
 	void OnAbout(wxCommandEvent& event);
 	void OnCategoryListSelection(wxCommandEvent& event);
 	void OnCategoryWindow(wxCommandEvent& event);
+	void OnCategoryListContext(wxContextMenuEvent& event);
+	void OnCategoryRename(wxCommandEvent& event);
 	//erase
 	void OnEraseBackground(wxEraseEvent& event);
 
@@ -101,8 +105,9 @@ private:
 	std::unique_ptr<wxListBox> mCategoryList;
 	std::unique_ptr<PLConfig> mPLConfig;
 	std::unique_ptr<wxHtmlWindow> mProductDisplay;
+	friend class ProductList;
 
-
+	void PlugCategoryListEvents();
 	wxPoint GetStartPosition();
 	wxString ProductDisplayText(const ProductItem& item);
 	DECLARE_EVENT_TABLE()

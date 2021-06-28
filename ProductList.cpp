@@ -193,7 +193,7 @@ void ProductList::LoadListDatabase()
 		//director exist, 
 		//load the data base from the file
 		std::string npath = mDatabasePath;
-		npath += "\\data.pl";
+		npath += "\\productlist.dat";
 		std::fstream database(npath, std::ios::in | std::ios::binary);
 		if (database.is_open() && database.good())
 		{
@@ -219,7 +219,7 @@ void ProductList::LoadListDatabase()
 		else
 		{
 			//if file does not open, assume file does not exist
-			wxMessageBox("Failed to load database, \"data.dat\" does not exist in the folder", "DATABASE ERROR", wxOK | wxICON_INFORMATION);
+			wxMessageBox("Failed to load database, \"productlist.dat\" does not exist in the folder", "DATABASE ERROR", wxOK | wxICON_INFORMATION);
 			WriteErrorCode(FILE_DOES_NOT_EXIST);
 			return;
 		}
@@ -273,8 +273,8 @@ void ProductList::SaveDatabase()
 
     if (wxDir::Exists(mDatabasePath))
 	{
-		std::string nPath = mDatabasePath + "\\data.pl";
-		std::fstream database(nPath, std::ios::in | std::ios::binary);
+		std::string nPath = mDatabasePath + "\\productlist.dat";
+		std::fstream database(nPath, std::ios::out | std::ios::binary);
 		if (database.is_open())
 		{
 			//database file is in folder, save
@@ -392,6 +392,30 @@ void ProductList::RemoveFromViewList(ProductItem& item)
 	}
 }
 
+void ProductList::InsertInListView(ProductItem& item)
+{
+	wxVector<wxVariant> mdata;
+	mdata.push_back(wxVariant(item.GetProductName()));
+
+	if (item.GetStockCount() != 0)
+		mdata.push_back(wxVariant(wxArtProvider::GetBitmap("check")));
+	else
+		mdata.push_back(wxVariant(wxArtProvider::GetBitmap("delete")));
+
+	mdata.push_back(wxVariant(item.GetCategoryName()));
+	mdata.push_back(wxVariant(item.GetProductClass()));
+	mdata.push_back(wxVariant(item.GetProductActIng()));
+	mdata.push_back(wxVariant(std::to_string(item.GetStockCount())));
+
+	wxString price;
+	price.sprintf("%.2f", item.GetUnitPrice());
+	mdata.push_back(wxVariant(price));
+
+	int sel = mDataListViewControl->GetSelectedRow();
+	mDataListViewControl->InsertItem(sel,mdata);
+
+}
+
 void ProductList::ShowAll()
 {
 	ResetViewList();
@@ -497,8 +521,35 @@ void ProductList::OnCategoryRemoved(const std::string& Category)
 //TODO: 
 void ProductList::OnCategoryNameChange(const std::string& oldName, const std::string& newName)
 {
-	//create a new category
-	//get old category set, 
+	//get the set attached to the category
+	//insert the pair with the new name 
+	//remove old category
+	auto iter = mItemStore.find(oldName);
+	auto& set = iter->second;
+	std::set<ProductItem> newSet;
+	
+	//c++ magic
+	std::insert_iterator<std::set<ProductItem> > Insert(newSet, newSet.begin());
+	std::transform(set.begin(), set.end(), Insert, [&](const ProductItem& item) {
+		ProductItem& itemNC = const_cast<ProductItem&>(item);
+		itemNC.CategoryName() = newName;
+		return itemNC;
+		});
+	auto insetIter = mItemStore.insert(std::make_pair(newName, newSet));
+	if (insetIter.second)
+	{
+		mItemStore.erase(oldName);
+		if(oldName == mCurrentCategory)
+		{
+			ResetViewList();
+			updateViewList(insetIter.first);
+			mCurrentCategory = newName;
+		}
+	}
+	else
+	{
+		wxMessageBox("Failed to change name, category may already exist", "Category");
+	}
 }
 
 void ProductList::OnProductAdded(ProductItem& item)
@@ -534,8 +585,9 @@ void ProductList::OnProductEdited(ProductItem& oldItem, ProductItem& newItem)
 	}
 
 	//update the view
+	InsertInListView(newItem);
 	RemoveFromViewList(oldItem);
-	AppendToViewList(newItem);
+	mDataListViewControl->Select(mDataListViewControl->GetCurrentItem());
 }
 
 void ProductList::OnContextMenu(wxDataViewEvent& event)
@@ -626,7 +678,7 @@ void ProductList::OnDataLoaded()
 	if (mItemStore.empty())
 	{
 		//fatal error
-		wxMessageBox("Fatal error", "End all things", wxOK | wxICON_ERROR);
+		wxMessageBox("Fatal error, store empty after load", "End all things", wxOK | wxICON_ERROR);
 		return;
 	}
 	if (mCurrentCategory.empty())
@@ -659,7 +711,22 @@ void ProductList::OnProductEditStarted(wxDataViewEvent& event)
 
 void ProductList::OnProductSelectionChanged(wxDataViewEvent& event)
 {
+	MainFrame* frame = wxGetApp().mFrame;
+	if (frame)
+	{
+		wxAuiPaneInfo info = frame->mFrameManager->GetPane("Product display");
+		if (info.IsShown())
+		{
+			auto item = mDataListViewControl->GetCurrentItem();
+			if (item.IsOk())
+			{
+				const ProductItem& product = GetFromDataView(item);
+				((wxHtmlWindow*)info.window)->SetPage(frame->ProductDisplayText(product));
+				((wxHtmlWindow*)info.window)->Update();
 
+			}
+		}
+	}
 }
 
 void ProductList::OnProductActivated(wxDataViewEvent& event)
@@ -673,11 +740,12 @@ void ProductList::OnProductActivated(wxDataViewEvent& event)
 //throw unusual error 
 bool ProductList::doload(std::fstream& file)
 {
+
 	std::istream_iterator<ProductItem> iter(file);
 	std::istream_iterator<ProductItem> eos;
 	while (iter != eos)
 	{
-		const ProductItem item = *iter;
+		const ProductItem item = *iter++;
 		auto setIter = mItemStore.find(item.GetCategoryName());
 		//if not inside store
 		if (setIter == mItemStore.end())
@@ -700,14 +768,14 @@ bool ProductList::doload(std::fstream& file)
 			WriteErrorCode(DATABASE_ERROR);
 			return false;
 		}
-		iter++;
 	}
-
-	return true;
+	bool ret = doLoadEmptyCategoryNames();
+	return (ret);
 }
 
 bool ProductList::doSave(std::fstream& file)
 {
+	std::fstream mEmptyCatFile(mDatabasePath + "\\emptycategory.txt", std::ios::out);
 	std::ostream_iterator<ProductItem> oIter(file);
 	std::unique_lock<std::mutex> lock(mPLStoreMutex);
 	for (auto& storeIter : mItemStore)
@@ -721,11 +789,47 @@ bool ProductList::doSave(std::fstream& file)
 				return false;
 			}
 		}
+		if (storeIter.second.empty())
+		{
+			mEmptyCatFile << storeIter.first <<"\n";
+		}
 	}
 
 	//data saved, hopefully well
 	return true;
 
+}
+
+bool ProductList::doLoadEmptyCategoryNames()
+{
+	std::fstream mEmptyCatFile(mDatabasePath + "\\emptycategory.txt", std::ios::in);
+	if (mEmptyCatFile.is_open())
+	{
+		while (!mEmptyCatFile.eof() && mEmptyCatFile.good())
+		{
+			std::string category;
+			std::getline(mEmptyCatFile, category);
+			if (category.empty()) continue;
+			else
+			{
+				//insert a new set into the category
+				std::set<ProductItem> set;
+				auto iterI = mItemStore.insert(std::make_pair(category, set));
+				if (!iterI.second)
+				{
+					//skip, assume already in the store
+					continue;
+				}
+			}
+		}
+	}
+	else
+	{
+		wxMessageBox("Could not load empty categories from file", "Load category");
+		return false;
+	}
+
+	return true;
 }
 
 bool ProductList::updateViewList(StoreIterator iterator)

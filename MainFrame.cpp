@@ -12,6 +12,8 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_MENU(MainFrame::ID_CATGORY_WINDOW, MainFrame::OnCategoryWindow)
 	EVT_MENU(MainFrame::ID_NEW_PRODUCT, MainFrame::OnAddProduct)
 	EVT_MENU(MainFrame::ID_PRODUCT_DISPLAY, MainFrame::OnProductDisplay)
+	EVT_MENU(MainFrame::ID_CATEGORY_CONTEXT_REMOVE, MainFrame::OnRemoveCategory)
+	EVT_MENU(MainFrame::ID_CATEGORY_CONTEXT_RENAME, MainFrame::OnCategoryRename)
 	EVT_TOOL(MainFrame::ID_TOOL_BACK, MainFrame::OnBack)
 	EVT_TOOL(MainFrame::ID_TOOL_FRONT, MainFrame::OnNext)
 	EVT_TOOL(MainFrame::ID_TOOL_ADD_PRODUCT, MainFrame::OnAddProduct)
@@ -61,6 +63,7 @@ bool MainFrame::InitCreation()
 	CreateToolBar();
 	CreateProductList();
 	CreateCategoryList();
+	PlugCategoryListEvents();
 	CreateProductDisplay();
 	CreateDefaultArtSettings();
 	mFrameManager->Update();
@@ -154,13 +157,6 @@ void MainFrame::Load()
 {
 	mPLConfig->LoadConfigFile();
 	mProductList->LoadListDatabase();
-
-	std::string file = wxGetApp().mApplicationPath.ToStdString() + "\\test.txt";
-	std::fstream pFile(file, std::ios::in | std::ios::binary);
-	if (pFile.is_open())
-	{
-		wxMessageBox("open test");
-	}
 
 	//load the previous perspective
 	if (!(*mPLConfig)["APP_PERSPECTIVE"].empty())
@@ -393,6 +389,39 @@ void MainFrame::OnCategoryWindow(wxCommandEvent& event)
 	}
 }
 
+void MainFrame::OnCategoryListContext(wxContextMenuEvent& event)
+{
+	int sel = event.GetSelection();
+	if (sel != wxNOT_FOUND)
+	{
+		wxMenu* menu = new wxMenu;
+		menu->Append(ID_CATEGORY_CONTEXT_RENAME, "Rename");
+		menu->Append(ID_CATEGORY_CONTEXT_REMOVE, "Remove");
+		PopupMenu(menu);
+	}
+}
+
+void MainFrame::OnCategoryRename(wxCommandEvent& event)
+{
+	int sel = mCategoryList->GetSelection();
+	if (sel != wxNOT_FOUND)
+	{
+		wxTextEntryDialog dlg(this, "Please enter new name:", wxT("Category"));
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			std::string value = dlg.GetValue().ToStdString();
+			if (!value.empty())
+			{
+				std::string oldvalue = mCategoryList->GetString(sel).ToStdString();
+				mProductList->OnCategoryNameChange(oldvalue, value);
+				mCategoryList->SetString(sel, value);
+				//mCategoryList->Delete(sel);
+			}
+		}
+
+	}
+}
+
 void MainFrame::OnProductDisplay(wxCommandEvent& event)
 {
 	//get the item from store
@@ -401,7 +430,7 @@ void MainFrame::OnProductDisplay(wxCommandEvent& event)
 	{
 		const ProductItem& product = mProductList->GetFromDataView(item);
 		mProductDisplay->SetPage(ProductDisplayText(product));
-		
+		mProductDisplay->Update();
 
 		//display the product
 		mFrameManager->GetPane("Product display").Show();
@@ -419,6 +448,11 @@ void MainFrame::OnProductDisplay(wxCommandEvent& event)
 void MainFrame::OnEraseBackground(wxEraseEvent& event)
 {
 	event.Skip();
+}
+
+void MainFrame::PlugCategoryListEvents()
+{
+	mCategoryList->Connect(wxEVT_CONTEXT_MENU, wxContextMenuEventHandler(MainFrame::OnCategoryListContext));
 }
 
 wxPoint MainFrame::GetStartPosition()

@@ -80,6 +80,7 @@ public:
 	std::shared_ptr<wxDataViewListCtrl> GetListControl();
 	void AppendToViewList(const ProductItem& item);
 	void RemoveFromViewList(ProductItem& item);
+	void InsertInListView(ProductItem& item);
 	void ShowAll();
 
 public:
@@ -127,6 +128,7 @@ private:
 private:
 	bool doload(std::fstream& file);
 	bool doSave(std::fstream& file);
+	bool doLoadEmptyCategoryNames();
 	bool updateViewList(StoreIterator iterator);
 	void ResetViewList();
 	void WriteErrorCode(int errorCode);

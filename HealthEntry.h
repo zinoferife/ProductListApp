@@ -37,6 +37,7 @@ class HealthTag : public wxDialog
 	enum
 	{
 		ID_ADD_BUTTON,
+		ID_CLEAR_BUTTON,
 		ID_TEXT_ENTRY,
 		ID_TAG_LIST,
 		ID_CONTEXT_REMOVE
@@ -48,11 +49,13 @@ class HealthTag : public wxDialog
 		void OnAddButton(wxCommandEvent& event);
 		void OnOkButton(wxCommandEvent& event);
 		void OnTagList(wxCommandEvent& event);
+		void OnClearButton(wxCommandEvent& event);
 		void OnClose(wxCloseEvent& event);
 		void OnContextMenu(wxContextMenuEvent& event);
 	protected:
 		wxTextCtrl* mTagEntryText;
 		wxBitmapButton* mAddButton;
+		wxBitmapButton* mClearButton;
 		wxListBox* mHealthTagList;
 
 

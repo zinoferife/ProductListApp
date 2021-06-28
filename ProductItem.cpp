@@ -1,4 +1,5 @@
 #include "ProductItem.h"
+#define READ_SIZE 1024
 std::uint64_t ProductItem::IdGen::idSeed = 0;
 
 ProductItem::ProductItem()
@@ -107,6 +108,7 @@ ProductItem::ProductItem(ProductItem&& product) noexcept
 	mProductID = product.mProductID;
 	mProductName = std::move(product.mProductName);
 	mProductActiveIngredent = std::move(product.mProductActiveIngredent);
+	mCategoryName = std::move(product.mCategoryName);
 	mProductDesc = std::move(product.mProductDesc);
 	mDirForUse = std::move(product.mDirForUse);
 	mProductClass = std::move(product.mProductClass);
@@ -152,11 +154,12 @@ void ProductItem::RemoveTag(const std::string& tag)
 
 void ProductItem::WriteTag(std::ostream& os) const
 {
+	//write the size
+	std::size_t size = mHealthTag.size();
+	os.write((const char*)& size, sizeof(std::size_t));
+
 	if (!mHealthTag.empty())
 	{
-		//write the size
-		std::size_t size = mHealthTag.size();
-		os.write((const char*)& size, sizeof(std::size_t));
 		for (auto& i : mHealthTag)
 		{
 			const size_t bytes = sizeof(std::string::value_type) * i.size();
@@ -169,12 +172,13 @@ void ProductItem::WriteTag(std::ostream& os) const
 void ProductItem::ReadTag(std::istream& os)
 {
 	std::size_t listSize = 0, strSize = 0;
-	char* buffer = new char[256];
+	char* buffer = new char[READ_SIZE];
 	os.read((char*)& listSize, sizeof(std::size_t));
+	mHealthTag.clear();
 	for (int i = 0; i < listSize; i++)
 	{
 		os.read((char*)& strSize, sizeof(std::size_t));
-		if (strSize >= 256) strSize = 255;
+		if (strSize >= READ_SIZE) strSize = READ_SIZE;
 		memset(buffer, '\0', 256);
 		os.read(buffer, strSize);
 		mHealthTag.push_back(std::string(buffer));
@@ -192,30 +196,30 @@ std::ostream& operator<<(std::ostream& os, const ProductItem& item)
 	os.write((const char*)&item.mProductID, bytes);
 
 	bytes = sizeof(std::string::value_type) * item.mProductName.size();
-	os << bytes;
+	os.write((const char*)&bytes, sizeof(bytes));
 	os.write(item.mProductName.data(), bytes);
 
 	bytes = sizeof(std::string::value_type) * item.mProductActiveIngredent.size();
-	os << bytes;
+	os.write((const char*)& bytes, sizeof(bytes));
 	os.write(item.mProductActiveIngredent.data(), bytes);
 
 
 	bytes = sizeof(std::string::value_type) * item.mCategoryName.size();
-	os << bytes;
+	os.write((const char*)& bytes, sizeof(bytes));
 	os.write(item.mCategoryName.data(), bytes);
 
 	bytes = sizeof(std::string::value_type) * item.mProductDesc.size();
-	os << bytes;
+	os.write((const char*)& bytes, sizeof(bytes));
 	os.write(item.mProductDesc.data(), bytes);
 
 
 	bytes = sizeof(std::string::value_type) * item.mDirForUse.size();
-	os << bytes;
+	os.write((const char*)& bytes, sizeof(bytes));
 	os.write(item.mDirForUse.data(), bytes);
 
 
 	bytes = sizeof(std::string::value_type) * item.mProductClass.size();
-	os << bytes;
+	os.write((const char*)& bytes, sizeof(bytes));
 	os.write(item.mProductClass.data(), bytes);
 
 	bytes = sizeof(std::uint32_t);
@@ -233,43 +237,43 @@ std::istream& operator>>(std::istream& os, ProductItem& item)
 {
 	//buffer overlow attach here, big security issue
 
-	char* buffer = new char[256];
+	char* buffer = new char[READ_SIZE];
 	std::size_t bytes = sizeof(std::uint64_t);
 	os.read((char*)&item.mProductID, bytes);
 
-	os >> bytes;
-	if(bytes >= 256) bytes = 255;
-	memset(buffer, '\0', 256);
+	os.read((char*)& bytes, sizeof(bytes));
+	if(bytes >= READ_SIZE) bytes = READ_SIZE;
+	memset(buffer, '\0', READ_SIZE);
 	os.read(buffer, bytes);
 	item.mProductName = std::string(buffer);
 
-	os >> bytes;
-	if(bytes >= 256) bytes = 255;
-	memset(buffer, '\0', 256);
+	os.read((char*)&bytes, sizeof(bytes));
+	if(bytes >= READ_SIZE) bytes = READ_SIZE;
+	memset(buffer, '\0', READ_SIZE);
 	os.read(buffer, bytes);
 	item.mProductActiveIngredent = std::string(buffer);
 
-	os >> bytes;
-	if(bytes >= 256) bytes = 255;
-	memset(buffer, '\0', 256);
+	os.read((char*)& bytes, sizeof(bytes));
+	if(bytes >= READ_SIZE) bytes = READ_SIZE;
+	memset(buffer, '\0', READ_SIZE);
 	os.read(buffer, bytes);
 	item.mCategoryName = std::string(buffer);
 
-	os >> bytes;
-	if(bytes >= 256) bytes = 255;
-	memset(buffer, '\0', 256);
+	os.read((char*)& bytes, sizeof(bytes));
+	if(bytes >= READ_SIZE) bytes = READ_SIZE;
+	memset(buffer, '\0', READ_SIZE);
 	os.read(buffer, bytes);
 	item.mProductDesc = std::string(buffer);
 
-	os >> bytes;
-	if(bytes >= 256) bytes = 255;
-	memset(buffer, '\0', 256);
+	os.read((char*)& bytes, sizeof(bytes));
+	if(bytes >= READ_SIZE) bytes = READ_SIZE;
+	memset(buffer, '\0', READ_SIZE);
 	os.read(buffer, bytes);
 	item.mDirForUse = std::string(buffer);
 
-	os >> bytes;
-	if (bytes >= 256) bytes = 255;
-	memset(buffer, '\0', 256);
+	os.read((char*)& bytes, sizeof(bytes));
+	if (bytes >= READ_SIZE) bytes = READ_SIZE;
+	memset(buffer, '\0', READ_SIZE);
 	os.read(buffer, bytes);
 	item.mProductClass = std::string(buffer);
 
