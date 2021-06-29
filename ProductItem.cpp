@@ -1,6 +1,7 @@
 #include "ProductItem.h"
 #define READ_SIZE 1024
 std::uint64_t ProductItem::IdGen::idSeed = 0;
+char* ProductItem::buffer = nullptr;
 
 ProductItem::ProductItem()
 :mProductID{0},
@@ -172,20 +173,45 @@ void ProductItem::WriteTag(std::ostream& os) const
 void ProductItem::ReadTag(std::istream& os)
 {
 	std::size_t listSize = 0, strSize = 0;
-	char* buffer = new char[READ_SIZE];
+	//char* buffer = new char[READ_SIZE];
 	os.read((char*)& listSize, sizeof(std::size_t));
 	mHealthTag.clear();
 	for (int i = 0; i < listSize; i++)
 	{
 		os.read((char*)& strSize, sizeof(std::size_t));
 		if (strSize >= READ_SIZE) strSize = READ_SIZE;
-		memset(buffer, '\0', 256);
-		os.read(buffer, strSize);
-		mHealthTag.push_back(std::string(buffer));
+		memset(ProductItem::buffer, '\0', READ_SIZE);
+		os.read(ProductItem::buffer, strSize);
+		mHealthTag.push_back(std::string(ProductItem::buffer));
 	}
 
-	delete[] buffer;
+	//delete[] buffer;
 	return;
+}
+
+void ProductItem::AllocateReadBuffer()
+{
+	if (buffer == nullptr)
+	{
+		buffer = new char[READ_SIZE];
+	}
+}
+
+void ProductItem::DeallocateReadBuffer()
+{
+	if (buffer != nullptr)
+	{
+		delete[] buffer;
+		buffer = nullptr;
+	}
+}
+
+
+static void WriteFromString(std::ostream& os, const std::string& string, std::size_t& bytes)
+{
+	bytes = sizeof(std::string::value_type) * string.size();
+	os.write((const char*)& bytes, sizeof(bytes));
+	os.write(string.data(), bytes);
 }
 
 
@@ -195,32 +221,12 @@ std::ostream& operator<<(std::ostream& os, const ProductItem& item)
 	bytes = sizeof(std::uint64_t);
 	os.write((const char*)&item.mProductID, bytes);
 
-	bytes = sizeof(std::string::value_type) * item.mProductName.size();
-	os.write((const char*)&bytes, sizeof(bytes));
-	os.write(item.mProductName.data(), bytes);
-
-	bytes = sizeof(std::string::value_type) * item.mProductActiveIngredent.size();
-	os.write((const char*)& bytes, sizeof(bytes));
-	os.write(item.mProductActiveIngredent.data(), bytes);
-
-
-	bytes = sizeof(std::string::value_type) * item.mCategoryName.size();
-	os.write((const char*)& bytes, sizeof(bytes));
-	os.write(item.mCategoryName.data(), bytes);
-
-	bytes = sizeof(std::string::value_type) * item.mProductDesc.size();
-	os.write((const char*)& bytes, sizeof(bytes));
-	os.write(item.mProductDesc.data(), bytes);
-
-
-	bytes = sizeof(std::string::value_type) * item.mDirForUse.size();
-	os.write((const char*)& bytes, sizeof(bytes));
-	os.write(item.mDirForUse.data(), bytes);
-
-
-	bytes = sizeof(std::string::value_type) * item.mProductClass.size();
-	os.write((const char*)& bytes, sizeof(bytes));
-	os.write(item.mProductClass.data(), bytes);
+	WriteFromString(os, item.mProductName, bytes);
+	WriteFromString(os, item.mProductActiveIngredent, bytes);
+	WriteFromString(os, item.mCategoryName, bytes);
+	WriteFromString(os, item.mProductDesc, bytes);
+	WriteFromString(os, item.mDirForUse, bytes);
+	WriteFromString(os, item.mProductClass, bytes);
 
 	bytes = sizeof(std::uint32_t);
 	os.write((const char*)& item.mStockCount, bytes);
@@ -232,50 +238,28 @@ std::ostream& operator<<(std::ostream& os, const ProductItem& item)
 
 	return os;
 }
+static void ReadIntoString(std::istream& os, std::string& string, std::size_t& bytes)
+{
+	os.read((char*)& bytes, sizeof(bytes));
+	if (bytes >= READ_SIZE) bytes = READ_SIZE;
+	memset(ProductItem::buffer, '\0', READ_SIZE);
+	os.read(ProductItem::buffer, bytes);
+	string = std::string(ProductItem::buffer);
+}
+
 
 std::istream& operator>>(std::istream& os, ProductItem& item)
 {
-	//buffer overlow attach here, big security issue
-
-	char* buffer = new char[READ_SIZE];
 	std::size_t bytes = sizeof(std::uint64_t);
 	os.read((char*)&item.mProductID, bytes);
 
-	os.read((char*)& bytes, sizeof(bytes));
-	if(bytes >= READ_SIZE) bytes = READ_SIZE;
-	memset(buffer, '\0', READ_SIZE);
-	os.read(buffer, bytes);
-	item.mProductName = std::string(buffer);
+	ReadIntoString(os, item.mProductName, bytes);
+	ReadIntoString(os, item.mProductActiveIngredent, bytes);
+	ReadIntoString(os, item.mCategoryName, bytes);
+	ReadIntoString(os, item.mProductDesc, bytes);
+	ReadIntoString(os, item.mDirForUse, bytes);
+	ReadIntoString(os, item.mProductClass, bytes);
 
-	os.read((char*)&bytes, sizeof(bytes));
-	if(bytes >= READ_SIZE) bytes = READ_SIZE;
-	memset(buffer, '\0', READ_SIZE);
-	os.read(buffer, bytes);
-	item.mProductActiveIngredent = std::string(buffer);
-
-	os.read((char*)& bytes, sizeof(bytes));
-	if(bytes >= READ_SIZE) bytes = READ_SIZE;
-	memset(buffer, '\0', READ_SIZE);
-	os.read(buffer, bytes);
-	item.mCategoryName = std::string(buffer);
-
-	os.read((char*)& bytes, sizeof(bytes));
-	if(bytes >= READ_SIZE) bytes = READ_SIZE;
-	memset(buffer, '\0', READ_SIZE);
-	os.read(buffer, bytes);
-	item.mProductDesc = std::string(buffer);
-
-	os.read((char*)& bytes, sizeof(bytes));
-	if(bytes >= READ_SIZE) bytes = READ_SIZE;
-	memset(buffer, '\0', READ_SIZE);
-	os.read(buffer, bytes);
-	item.mDirForUse = std::string(buffer);
-
-	os.read((char*)& bytes, sizeof(bytes));
-	if (bytes >= READ_SIZE) bytes = READ_SIZE;
-	memset(buffer, '\0', READ_SIZE);
-	os.read(buffer, bytes);
-	item.mProductClass = std::string(buffer);
 
 	bytes = sizeof(std::uint32_t);
 	os.read((char*)& item.mStockCount, bytes);
@@ -284,11 +268,7 @@ std::istream& operator>>(std::istream& os, ProductItem& item)
 	os.read((char*)& item.mUnitPrice, bytes);
 
 	item.ReadTag(os);
-
-
-	delete[] buffer;
 	return os;
-
 }
 
 ProductItem::IdGen::IdGen(std::uint64_t startFrom)

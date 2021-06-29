@@ -94,6 +94,12 @@ public:
 	void WriteTag(std::ostream& os) const;
 	void ReadTag(std::istream& os);
 
+//for read write
+	static void AllocateReadBuffer();
+	static void DeallocateReadBuffer();
+	//read buffer
+	static char* buffer;
+
 private:
 
 	std::uint64_t mProductID;

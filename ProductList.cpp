@@ -380,10 +380,11 @@ void ProductList::RemoveFromViewList(ProductItem& item)
 {
 	if (!item.IsEmpty())
 	{
-		int row = mDataListViewControl->GetSelectedRow();
-		if (row != wxNOT_FOUND)
+		int nrow = mDataListViewControl->GetSelectedRow();
+		nrow++;
+		if (nrow != wxNOT_FOUND)
 		{
-			mDataListViewControl->DeleteItem(row);
+			mDataListViewControl->DeleteItem(nrow);
 		}
 		else
 		{
@@ -578,6 +579,7 @@ void ProductList::OnProductEdited(ProductItem& oldItem, ProductItem& newItem)
 
 	//remove old item
 	itemSet->second.erase(oldItem);
+	FormatProductName(newItem.ProductName());
 	auto iterInsert = itemSet->second.insert(newItem);
 	if (!iterInsert.second)
 	{
@@ -585,8 +587,11 @@ void ProductList::OnProductEdited(ProductItem& oldItem, ProductItem& newItem)
 	}
 
 	//update the view
+	mDataListViewControl->Freeze();
 	InsertInListView(newItem);
 	RemoveFromViewList(oldItem);
+	mDataListViewControl->Thaw();
+	mDataListViewControl->Refresh();
 	mDataListViewControl->Select(mDataListViewControl->GetCurrentItem());
 }
 
@@ -740,7 +745,7 @@ void ProductList::OnProductActivated(wxDataViewEvent& event)
 //throw unusual error 
 bool ProductList::doload(std::fstream& file)
 {
-
+	ProductItem::AllocateReadBuffer();
 	std::istream_iterator<ProductItem> iter(file);
 	std::istream_iterator<ProductItem> eos;
 	while (iter != eos)
@@ -756,6 +761,7 @@ bool ProductList::doload(std::fstream& file)
 			{
 				//should also not occur because set is new, and category name does not exist
 				WriteErrorCode(UNUSUAL_ERROR_IN_LOAD);
+				ProductItem::DeallocateReadBuffer();
 				return false;
 			}
 			setIter = iterS.first;
@@ -766,10 +772,12 @@ bool ProductList::doload(std::fstream& file)
 		{
 			//error corrupted file, file contains 2 exact products in the data base, 
 			WriteErrorCode(DATABASE_ERROR);
+			ProductItem::DeallocateReadBuffer();
 			return false;
 		}
 	}
 	bool ret = doLoadEmptyCategoryNames();
+	ProductItem::DeallocateReadBuffer();
 	return (ret);
 }
 
