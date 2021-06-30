@@ -94,7 +94,7 @@ public:
 	void WriteTag(std::ostream& os) const;
 	void ReadTag(std::istream& os);
 
-//for read write
+//for read write for internal use 
 	static void AllocateReadBuffer();
 	static void DeallocateReadBuffer();
 	//read buffer

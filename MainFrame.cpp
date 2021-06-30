@@ -20,6 +20,7 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_TOOL(MainFrame::ID_TOOL_ADD_CATEGORY, MainFrame::OnAddCategory)
 	EVT_TOOL(MainFrame::ID_TOOL_REMOVE_PRODUCT, MainFrame::OnRemoveProduct)
 	EVT_TOOL(MainFrame::ID_TOOL_REMOVE_CATEGORY, MainFrame::OnRemoveCategory)
+	EVT_TOOL(MainFrame::ID_TOOL_DOWNLOAD_DATA, MainFrame::OnDownloadData)
 	EVT_LISTBOX_DCLICK(MainFrame::ID_CATEGORY_LIST, MainFrame::OnCategoryListSelection)
 END_EVENT_TABLE()
 
@@ -279,26 +280,29 @@ void MainFrame::OnAddProduct(wxCommandEvent& event)
 
 void MainFrame::OnRemoveProduct(wxCommandEvent& event)
 {
-	auto category = mProductList->GetCurrentCategory();
-	if (!category.empty())
+	if (wxMessageBox(wxT("Are you sure you want to remove product?"), wxT("Remove product"), wxYES_NO | wxICON_INFORMATION) == wxYES)
 	{
-		auto listView = mProductList->GetListControl();
-		auto model = listView->GetModel();
-		auto selItem = listView->GetCurrentItem();
-		if (selItem.IsOk())
+		auto category = mProductList->GetCurrentCategory();
+		if (!category.empty())
 		{
-			wxVariant itemDataName, itemDataCategory;
-			model->GetValue(itemDataName, selItem, 0);
-			model->GetValue(itemDataCategory, selItem, 2);
-			//remove from the store and the view
-			mProductList->RemoveItem(mProductList->GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString()));
+			auto listView = mProductList->GetListControl();
+			auto model = listView->GetModel();
+			auto selItem = listView->GetCurrentItem();
+			if (selItem.IsOk())
+			{
+				wxVariant itemDataName, itemDataCategory;
+				model->GetValue(itemDataName, selItem, 0);
+				model->GetValue(itemDataCategory, selItem, 2);
+				//remove from the store and the view
+				mProductList->RemoveItem(mProductList->GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString()));
 
-			//lol 
-			listView->DeleteItem(listView->ItemToRow(selItem));
-		}
-		else
-		{
-			wxMessageBox("No product selected", "Remove product");
+				//lol 
+				listView->DeleteItem(listView->ItemToRow(selItem));
+			}
+			else
+			{
+				wxMessageBox("No product selected", "Remove product");
+			}
 		}
 	}
 }
@@ -415,11 +419,15 @@ void MainFrame::OnCategoryRename(wxCommandEvent& event)
 				std::string oldvalue = mCategoryList->GetString(sel).ToStdString();
 				mProductList->OnCategoryNameChange(oldvalue, value);
 				mCategoryList->SetString(sel, value);
-				//mCategoryList->Delete(sel);
 			}
 		}
 
 	}
+}
+
+void MainFrame::OnDownloadData(wxCommandEvent& event)
+{
+	mProductList->SaveJsonFile();
 }
 
 void MainFrame::OnProductDisplay(wxCommandEvent& event)

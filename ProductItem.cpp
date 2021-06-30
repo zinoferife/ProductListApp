@@ -173,7 +173,6 @@ void ProductItem::WriteTag(std::ostream& os) const
 void ProductItem::ReadTag(std::istream& os)
 {
 	std::size_t listSize = 0, strSize = 0;
-	//char* buffer = new char[READ_SIZE];
 	os.read((char*)& listSize, sizeof(std::size_t));
 	mHealthTag.clear();
 	for (int i = 0; i < listSize; i++)
@@ -184,8 +183,6 @@ void ProductItem::ReadTag(std::istream& os)
 		os.read(ProductItem::buffer, strSize);
 		mHealthTag.push_back(std::string(ProductItem::buffer));
 	}
-
-	//delete[] buffer;
 	return;
 }
 

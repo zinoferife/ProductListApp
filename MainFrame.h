@@ -95,6 +95,7 @@ private:
 	void OnCategoryWindow(wxCommandEvent& event);
 	void OnCategoryListContext(wxContextMenuEvent& event);
 	void OnCategoryRename(wxCommandEvent& event);
+	void OnDownloadData(wxCommandEvent& event);
 	//erase
 	void OnEraseBackground(wxEraseEvent& event);
 

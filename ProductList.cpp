@@ -313,10 +313,56 @@ const std::string& ProductList::FindDatabase()
 
 void ProductList::ParseJsonFile()
 {
+	//reading from a json file to the 
 }
 
 void ProductList::SaveJsonFile()
 {
+	wxProgressDialog proDlg(wxT("Download data"),wxT("Save Data as Json"));
+	Json::Value root;
+	std::uint16_t count = 0;
+	for (auto catSet : mItemStore)
+	{
+		Json::Value category(Json::objectValue);
+
+		for (auto& item : catSet.second)
+		{
+			Json::Value productITem(Json::objectValue);
+			productITem["Product Name"] = item.GetProductName();
+			productITem["Product Active ingredent"] = item.GetProductActIng();
+			productITem["Product Description"] = item.GetProdcutDesc();
+			productITem["Direction for use"] = item.GetDirForUse();
+			productITem["Stock count"] = item.GetStockCount();
+			productITem["Unit price"] = item.GetUnitPrice();
+
+			Json::Value HealthTags(Json::arrayValue);
+			//lol dumb code but i love it
+			for (int i = 0; i < item.GetHealthTag().size(); i++)
+			{
+				HealthTags[i] = *(std::next(item.GetHealthTag().begin(), i));
+			}
+			productITem["Health tags"] = HealthTags;
+			category[item.GetProductName()] = productITem;
+		}
+		
+		root[catSet.first] = category;
+
+		//show user the update
+		std::uint32_t updateAmount = std::floor((float)++count / (float)mItemStore.size());
+		int Amount = 0;
+		Amount+= 4;
+		proDlg.Update(Amount, wxString("Writing ") + catSet.first);
+	}
+	//write the root to file 
+	Json::StreamWriterBuilder builder;
+	const std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+	std::string mPath = wxGetApp().mApplicationPath.ToStdString() + "\\ProductData.json";
+	std::fstream outFile(mPath, std::ios::out);
+
+	proDlg.Update(85, "Saving file");
+	writer->write(root, &outFile);
+	proDlg.Update(100, "Finished");
+
 }
 
 //runs on creation of the product list
@@ -611,26 +657,29 @@ void ProductList::OnContextMenu(wxDataViewEvent& event)
 
 void ProductList::OnContextRemove(wxCommandEvent& event)
 {
-	auto category = GetCurrentCategory();
-	if (!category.empty())
+	if (wxMessageBox(wxT("Are you sure you want to remove product?"), wxT("Remove product"), wxYES_NO | wxICON_INFORMATION) == wxYES)
 	{
-		auto listView = GetListControl();
-		auto model = listView->GetModel();
-		auto selItem = listView->GetCurrentItem();
-		if (selItem.IsOk())
+		auto category = GetCurrentCategory();
+		if (!category.empty())
 		{
-			wxVariant itemDataName, itemDataCategory;
-			model->GetValue(itemDataName, selItem, 0);
-			model->GetValue(itemDataCategory, selItem, 2);
-			//remove from the store and the view
-			RemoveItem(GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString()));
+			auto listView = GetListControl();
+			auto model = listView->GetModel();
+			auto selItem = listView->GetCurrentItem();
+			if (selItem.IsOk())
+			{
+				wxVariant itemDataName, itemDataCategory;
+				model->GetValue(itemDataName, selItem, 0);
+				model->GetValue(itemDataCategory, selItem, 2);
+				//remove from the store and the view
+				RemoveItem(GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString()));
 
-			//lol 
-			listView->DeleteItem(listView->ItemToRow(selItem));
-		}
-		else
-		{
-			wxMessageBox("No product selected", "Remove product");
+				//lol 
+				listView->DeleteItem(listView->ItemToRow(selItem));
+			}
+			else
+			{
+				wxMessageBox("No product selected", "Remove product");
+			}
 		}
 	}
 }

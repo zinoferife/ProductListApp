@@ -29,7 +29,7 @@ void ArtProvider::CreateImageStore()
 	mImageStore.insert(std::make_pair("maximize", wxBitmap(wxString(mPath + "\\icon\\maximize.ico"), wxBITMAP_TYPE_ICO)));
 	mImageStore.insert(std::make_pair("minimize", wxBitmap(wxString(mPath + "\\icon\\minimize.ico"), wxBITMAP_TYPE_ICO)));
 	mImageStore.insert(std::make_pair("save", wxBitmap(wxString(mPath + "\\icon\\save.ico"), wxBITMAP_TYPE_ICO)));
-	mImageStore.insert(std::make_pair("appIcon", wxBitmap(wxString(mPath + "\\Images\\AppIcon.jpg"), wxBITMAP_TYPE_JPEG)));
+	mImageStore.insert(std::make_pair("appIcon", wxBitmap(wxString(mPath + "\\Images\\dglopalogo.jpg"), wxBITMAP_TYPE_JPEG)));
 
 	for (auto& i : mImageStore)
 	{

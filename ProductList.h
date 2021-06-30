@@ -8,7 +8,8 @@
 #include <wx/dataview.h>
 #include <wx/aui/auibook.h>
 #include <wx/dir.h>
-
+#include <json/json.h>
+#include <wx/progdlg.h>
 
 #include <string>
 #include <set>
