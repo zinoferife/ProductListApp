@@ -459,13 +459,11 @@ void MainFrame::OnSearchForProduct(wxCommandEvent& event)
 			{
 				std::string selectedValue = sDialog.GetStringSelection().ToStdString();
 				auto iter = std::find_if(mItems.begin(), mItems.end(), [&](const ProductItem*& item) {
-					if (item->GetProductName() == selectedValue)
-					{
-						return true;
-					}
+					return (item->GetProductName() == selectedValue);
+					
 				});
-				mProductList->SelectProduct(*(*iter));
 				mCategoryList->Select(mCategoryList->FindString((*iter)->GetCategoryName()));
+				mProductList->SelectProduct(*(*iter));
 			}
 		}
 	}

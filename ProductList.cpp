@@ -518,7 +518,7 @@ void ProductList::SelectProduct(const ProductItem& item)
 			}
 		}
 		mDataListViewControl->Thaw();
-		mDataListViewControl->Refresh();
+		mDataListViewControl->SetFocus();
 	}
 }
 
@@ -545,7 +545,6 @@ void ProductList::OnCategoryChange(const std::string& Category)
 		mCurrentCategory = Category;
 		updateViewList(catIter);
 		mDataListViewControl->Thaw();
-		mDataListViewControl->Update();
 	}
 }
 
