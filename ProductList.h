@@ -89,6 +89,7 @@ public:
 	bool CreateCategory(const std::string& mCatrgory);
 	inline std::string& GetCurrentCategory() { return mCurrentCategory; }
 	void GetCategoryList(std::list<std::string>& categories);
+	void SelectProduct(const ProductItem& item);
 
 private:
 	void OnListItemSelectionChanged(wxDataViewEvent& event);
@@ -101,6 +102,7 @@ public:
 	void OnCategoryNameChange(const std::string& oldName, const std::string& newName);
 	void OnProductAdded(ProductItem& item);
 	void OnProductRemoved(ProductItem& item);
+	std::list<const ProductItem*> SearchForProduct(const std::string& matchName);
 	void OnDataLoaded();
 	void OnSaved();
 

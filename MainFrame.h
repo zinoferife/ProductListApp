@@ -38,7 +38,7 @@ public:
 		ID_TOOL_REMOVE_PRODUCT,
 		ID_TOOL_ADD_CATEGORY,
 		ID_TOOL_REMOVE_CATEGORY,
-		ID_TOOL_SEARCH_CATEGORY,
+		ID_TOOL_SEARCH_PRODUCT,
 		ID_TOOL_SAVE_DATABASE,
 		ID_TOOL_USER,
 		ID_PRODUCT_LIST,
@@ -96,6 +96,7 @@ private:
 	void OnCategoryListContext(wxContextMenuEvent& event);
 	void OnCategoryRename(wxCommandEvent& event);
 	void OnDownloadData(wxCommandEvent& event);
+	void OnSearchForProduct(wxCommandEvent& event); 
 	//erase
 	void OnEraseBackground(wxEraseEvent& event);
 

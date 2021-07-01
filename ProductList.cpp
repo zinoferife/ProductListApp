@@ -318,7 +318,7 @@ void ProductList::ParseJsonFile()
 
 void ProductList::SaveJsonFile()
 {
-	wxProgressDialog proDlg(wxT("Download data"),wxT("Save Data as Json"));
+	wxProgressDialog proDlg(wxT("Download data"),wxT("Save Data as Json"), 100, this, wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_REMAINING_TIME);
 	Json::Value root;
 	std::uint16_t count = 0;
 	for (auto catSet : mItemStore)
@@ -348,10 +348,9 @@ void ProductList::SaveJsonFile()
 		root[catSet.first] = category;
 
 		//show user the update
-		std::uint32_t updateAmount = std::floor((float)++count / (float)mItemStore.size());
-		int Amount = 0;
-		Amount+= 4;
-		proDlg.Update(Amount, wxString("Writing ") + catSet.first);
+		float updateAmount = ((float)++count / (float)mItemStore.size());
+		updateAmount *= 80;
+		proDlg.Update(updateAmount, wxString("Writing ") + catSet.first);
 	}
 	//write the root to file 
 	Json::StreamWriterBuilder builder;
@@ -496,6 +495,33 @@ void ProductList::GetCategoryList(std::list<std::string>& categories)
 
 }
 
+void ProductList::SelectProduct(const ProductItem& item)
+{
+	if (!item.IsEmpty())
+	{
+		if (item.GetCategoryName() != ALL_CATEGORIES) {
+			OnCategoryChange(item.GetCategoryName());
+		}
+		//select the product on the list
+		auto model = mDataListViewControl->GetModel();
+		mDataListViewControl->Freeze();
+		for (int i = 0; i < mDataListViewControl->GetItemCount(); i++)
+		{
+			//no random access into the data view which it thing is crazy 
+			//have to do this ugly thing. 
+			mDataListViewControl->SelectRow(i);
+			wxVariant name;
+			model->GetValue(name, mDataListViewControl->GetSelection(), 0);
+			if (item.GetProductName() == name.GetString().ToStdString())
+			{
+				break;
+			}
+		}
+		mDataListViewControl->Thaw();
+		mDataListViewControl->Refresh();
+	}
+}
+
 void ProductList::OnListItemSelectionChanged(wxDataViewEvent& event)
 {
 }
@@ -607,6 +633,26 @@ void ProductList::OnProductAdded(ProductItem& item)
 void ProductList::OnProductRemoved(ProductItem& item)
 {
 	RemoveItem(item);
+}
+
+std::list<const ProductItem*> ProductList::SearchForProduct(const std::string& matchName)
+{
+	//we want to loop through all categories and products and find products
+	//returns pointers to the items in the store that matches or is the string name
+	//the pointers are used to prevent copying 
+	std::list<const ProductItem*> foundList;
+	for (auto& iterCategory : mItemStore)
+	{
+		for (auto& iterItem : iterCategory.second)
+		{
+			if (iterItem.GetProductName().find(matchName) != std::string::npos)
+			{
+				foundList.push_back(&iterItem);
+			}
+		}
+	}
+
+	return foundList;
 }
 
 void ProductList::OnProductEdited(ProductItem& oldItem, ProductItem& newItem)

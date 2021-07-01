@@ -20,6 +20,7 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_TOOL(MainFrame::ID_TOOL_ADD_CATEGORY, MainFrame::OnAddCategory)
 	EVT_TOOL(MainFrame::ID_TOOL_REMOVE_PRODUCT, MainFrame::OnRemoveProduct)
 	EVT_TOOL(MainFrame::ID_TOOL_REMOVE_CATEGORY, MainFrame::OnRemoveCategory)
+	EVT_TOOL(MainFrame::ID_TOOL_SEARCH_PRODUCT, MainFrame::OnSearchForProduct)
 	EVT_TOOL(MainFrame::ID_TOOL_DOWNLOAD_DATA, MainFrame::OnDownloadData)
 	EVT_LISTBOX_DCLICK(MainFrame::ID_CATEGORY_LIST, MainFrame::OnCategoryListSelection)
 END_EVENT_TABLE()
@@ -82,6 +83,7 @@ void MainFrame::CreateToolBar()
 	toolbar->AddTool(ID_TOOL_REMOVE_PRODUCT, wxT("Remove product"), wxArtProvider::GetBitmap("delete"));
 	toolbar->AddTool(ID_TOOL_ADD_CATEGORY, wxT("Add category"), wxArtProvider::GetBitmap("file"));
 	toolbar->AddTool(ID_TOOL_REMOVE_CATEGORY, wxT("Remove category"), wxArtProvider::GetBitmap("remove"));
+	toolbar->AddTool(ID_TOOL_SEARCH_PRODUCT, wxT("Search product"), wxArtProvider::GetBitmap("search"));
 	toolbar->AddStretchSpacer();
 	toolbar->AddTool(ID_TOOL_DOWNLOAD_DATA, wxT("Download data"), wxArtProvider::GetBitmap("download"));
 	toolbar->AddTool(ID_TOOL_USER, wxT("User"), wxArtProvider::GetBitmap("user"));
@@ -428,6 +430,47 @@ void MainFrame::OnCategoryRename(wxCommandEvent& event)
 void MainFrame::OnDownloadData(wxCommandEvent& event)
 {
 	mProductList->SaveJsonFile();
+}
+
+void MainFrame::OnSearchForProduct(wxCommandEvent& event)
+{
+	wxTextEntryDialog searchDlg(this, wxT("Search for product"), wxT("Search product"));
+	if (searchDlg.ShowModal() == wxID_OK)
+	{
+		std::string value = searchDlg.GetValue().ToStdString();
+		//quadratic search, need to find a better search lol but it is what it is  
+		std::list<const ProductItem*> mItems = mProductList->SearchForProduct(value);
+		if (mItems.empty())
+		{
+			if (wxMessageBox("No product found, try again?", "Search product", wxYES_NO | wxICON_INFORMATION) == wxYES)
+			{
+				OnSearchForProduct(event);
+			}
+		}
+		else
+		{
+			wxArrayString choices;
+			for (auto& i : mItems)
+			{
+				choices.push_back(i->GetProductName());
+			}
+			wxSingleChoiceDialog sDialog(this, wxT("Please select a product"), wxT("Product select"), choices);
+			if (sDialog.ShowModal() == wxID_OK)
+			{
+				std::string selectedValue = sDialog.GetStringSelection().ToStdString();
+				auto iter = std::find_if(mItems.begin(), mItems.end(), [&](const ProductItem*& item) {
+					if (item->GetProductName() == selectedValue)
+					{
+						return true;
+					}
+				});
+				mProductList->SelectProduct(*(*iter));
+				mCategoryList->Select(mCategoryList->FindString((*iter)->GetCategoryName()));
+			}
+		}
+	}
+
+
 }
 
 void MainFrame::OnProductDisplay(wxCommandEvent& event)
