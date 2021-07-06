@@ -6,6 +6,9 @@
 #include <algorithm>
 
 //entity that represents a single product in the application
+
+//TODO: redo files to that they have meta-data that describes the file
+//e.g version number, number of products in the file ect
 class ProductItem
 {
 public:

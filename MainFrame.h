@@ -21,6 +21,7 @@
 #include "ArtProvider.h"
 #include "PLConfig.h"
 #include "ProductEntry.h"
+#include "ProductStat.h"
 
 class MainFrame : public wxFrame
 {
@@ -31,6 +32,7 @@ public:
 		ID_NEW_CATEGORY = wxID_HIGHEST + 1,
 		ID_NEW_PRODUCT,
 		ID_CATGORY_WINDOW,
+		ID_PRODUCT_STAT_WINDOW,
 		ID_PRODUCT_ENTRY,
 		ID_TOOL_BACK,
 		ID_TOOL_FRONT,
@@ -70,6 +72,7 @@ private:
 	void SaveAppConfig();
 	void CreateDefaultArtSettings();
 	void CreateProductDisplay();
+	void CreateProductStats();
 
 private:
 	//event handlers
@@ -97,6 +100,7 @@ private:
 	void OnCategoryRename(wxCommandEvent& event);
 	void OnDownloadData(wxCommandEvent& event);
 	void OnSearchForProduct(wxCommandEvent& event); 
+	void OnProductStatWindow(wxCommandEvent& event);
 	//erase
 	void OnEraseBackground(wxEraseEvent& event);
 
@@ -107,6 +111,7 @@ private:
 	std::unique_ptr<wxListBox> mCategoryList;
 	std::unique_ptr<PLConfig> mPLConfig;
 	std::unique_ptr<wxHtmlWindow> mProductDisplay;
+	std::unique_ptr<ProductStat> mProductStat;
 	friend class ProductList;
 
 	void PlugCategoryListEvents();

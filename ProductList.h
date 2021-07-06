@@ -18,6 +18,7 @@
 #include <iterator>
 #include <mutex>
 #include <memory>
+#include <regex>
 #include <unordered_map>
 #include "ProductItem.h"
 #include "ProductDialog.h"
@@ -126,6 +127,7 @@ public:
 
 
 private:
+	friend class ProductStat;
 	StoreType mItemStore;
 	std::string mCurrentCategory;
 private:
@@ -146,6 +148,10 @@ private:
 
 	//editing system
 	ProductItem* mProductCurrentEditing;
+
+	//Search
+	std::regex MakeRegexString(const std::string& searchString);
+
 
 private:
 	//thread semantics

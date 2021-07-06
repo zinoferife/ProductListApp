@@ -29,6 +29,7 @@
     <ClCompile Include="ProductEntry.cpp" />
     <ClCompile Include="ProductItem.cpp" />
     <ClCompile Include="ProductList.cpp" />
+    <ClCompile Include="ProductStat.cpp" />
     <ClCompile Include="TextAutoComplete.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -42,6 +43,7 @@
     <ClInclude Include="ProductEntry.h" />
     <ClInclude Include="ProductItem.h" />
     <ClInclude Include="ProductList.h" />
+    <ClInclude Include="ProductStat.h" />
     <ClInclude Include="TextAutoComplete.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

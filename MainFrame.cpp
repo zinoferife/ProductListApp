@@ -10,6 +10,7 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
 	EVT_MENU(MainFrame::ID_NEW_CATEGORY, MainFrame::OnAddCategory)
 	EVT_MENU(MainFrame::ID_CATGORY_WINDOW, MainFrame::OnCategoryWindow)
+	EVT_MENU(MainFrame::ID_PRODUCT_STAT_WINDOW, MainFrame::OnProductStatWindow)
 	EVT_MENU(MainFrame::ID_NEW_PRODUCT, MainFrame::OnAddProduct)
 	EVT_MENU(MainFrame::ID_PRODUCT_DISPLAY, MainFrame::OnProductDisplay)
 	EVT_MENU(MainFrame::ID_CATEGORY_CONTEXT_REMOVE, MainFrame::OnRemoveCategory)
@@ -109,8 +110,9 @@ void MainFrame::CreateMenuBar()
 
 
 	wxMenu* window = new wxMenu;
-	window->Append(ID_PRODUCT_DISPLAY, "product display \tCtrl-G");
-	window->Append(ID_CATGORY_WINDOW, "product categories");
+	window->Append(ID_PRODUCT_DISPLAY, "Product display \tCtrl-G");
+	window->Append(ID_CATGORY_WINDOW, "Product categories \tCtrl-R");
+	window->Append(ID_PRODUCT_STAT_WINDOW, "Product statistics \tCtrl-I");
 
 	menubar->Append(file, wxT("&File"));
 	menubar->Append(products, wxT("&Products"));
@@ -154,6 +156,20 @@ void MainFrame::CreateProductDisplay()
 {
 	mProductDisplay.reset(new wxHtmlWindow(this, ID_PRODUCT_DISPLAY_WIN));
 	mFrameManager->AddPane(mProductDisplay.get(),wxAuiPaneInfo().Name("Product display").Caption("Product display").Left().BestSize(wxSize(300,-1)).Hide());
+}
+
+void MainFrame::CreateProductStats()
+{
+	mProductStat.reset(new ProductStat(this, wxID_ANY));
+	if (mProductList)
+	{
+		mProductStat->CreateStatsFromStore(*mProductList.get());
+	}
+	if (mFrameManager)
+	{
+		mFrameManager->AddPane(mProductStat.get(), wxAuiPaneInfo().Name("Product stat")
+			.Caption("Product statistics").Left().Row(1).BestSize(wxSize(300, -1)).Show());
+	}
 }
 
 void MainFrame::Load()
@@ -469,6 +485,25 @@ void MainFrame::OnSearchForProduct(wxCommandEvent& event)
 	}
 
 
+}
+
+void MainFrame::OnProductStatWindow(wxCommandEvent& event)
+{
+	if (mFrameManager)
+	{
+		wxAuiPaneInfo& info = mFrameManager->GetPane("Product stat");
+		if (info.IsOk())
+		{
+			mProductStat->UpdateProductStatsFromStore(*mProductList.get());
+			info.Show();
+			mFrameManager->Update();
+		}
+		else if (!info.IsOk())
+		{
+			CreateProductStats();
+			mFrameManager->Update();
+		}
+	}
 }
 
 void MainFrame::OnProductDisplay(wxCommandEvent& event)

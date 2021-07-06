@@ -644,7 +644,7 @@ std::list<const ProductItem*> ProductList::SearchForProduct(const std::string& m
 	{
 		for (auto& iterItem : iterCategory.second)
 		{
-			if (iterItem.GetProductName().find(matchName) != std::string::npos)
+			if (std::regex_match(iterItem.GetProductName(), MakeRegexString(matchName)))
 			{
 				foundList.push_back(&iterItem);
 			}
@@ -977,6 +977,28 @@ std::string& ProductList::FormatProductName(std::string& value)
 		});
 	value[0] = std::toupper(value[0]);
 	return value;
+}
+
+std::regex ProductList::MakeRegexString(const std::string& searchString)
+{
+	//looool please dont laugh at my function okay!!
+	std::string temp;
+	temp += "(?:.*)?";
+	for (auto i = searchString.begin(); i != searchString.end(); i++)
+	{
+		char big, smal;
+		big = std::toupper(*i);
+		smal = std::tolower(*i);
+		temp += "[";
+		temp += big;
+		temp += "|";
+		temp += smal;
+		temp += "]";
+
+	}
+	temp += "(?:.*)?";
+	return std::regex(temp);
+
 }
 
 void ProductList::PlugViewEventHandlers()
