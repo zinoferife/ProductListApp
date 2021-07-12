@@ -9,7 +9,7 @@
 #include <wx/listctrl.h>
 #include <wx/aboutdlg.h>
 #include <wx/html/htmlwin.h>
-
+#include <wx/choicdlg.h>
 
 #include <fstream>
 #include <sstream>

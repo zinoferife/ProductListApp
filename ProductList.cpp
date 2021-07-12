@@ -364,6 +364,97 @@ void ProductList::SaveJsonFile()
 
 }
 
+void ProductList::SaveExcelFile()
+{
+	wxProgressDialog proDlg(wxT("Download data"), wxT("Save Data as Excel"), 100, this, wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_REMAINING_TIME);
+	std::string mPath = wxGetApp().mApplicationPath.ToStdString() + "\\ProductData.xlsx";
+	OpenXLSX::XLDocument doc;
+	std::uint16_t count = 0;
+	try {
+		doc.create(mPath);
+		auto wks = doc.workbook().worksheet("Sheet1");
+		//write headers
+		wks.cell(OpenXLSX::XLCellReference("A1")).value() = "Product name";
+		wks.cell(OpenXLSX::XLCellReference("B1")).value() = "Product Category";
+		wks.cell(OpenXLSX::XLCellReference("C1")).value() = "Product Class";
+		wks.cell(OpenXLSX::XLCellReference("D1")).value() = "Product  Active ingredent";
+		wks.cell(OpenXLSX::XLCellReference("E1")).value() = "Product Description";
+		wks.cell(OpenXLSX::XLCellReference("F1")).value() = "Direction for use";
+		wks.cell(OpenXLSX::XLCellReference("G1")).value() = "Stock count";
+		wks.cell(OpenXLSX::XLCellReference("H1")).value() = "Unit price";
+
+		//write the data by writing the product into each cell
+		const std::size_t totalProducts = GetTotalProducts();
+		auto xlRange = wks.range(OpenXLSX::XLCellReference("A2"), OpenXLSX::XLCellReference(totalProducts, 8));
+		auto xlIter = xlRange.begin();
+		
+		auto moveIter = [&](OpenXLSX::XLCellIterator& iter)
+		{
+			std::advance(iter, 1);
+			if (iter == xlRange.end())
+			{
+				throw std::exception("Iterator reached end");
+			}
+		};
+
+		auto writeProductString = [](OpenXLSX::XLCellIterator& iter, const std::string& data)
+		{
+			if (!data.empty())
+			{
+				iter->value() = data;
+			}
+			else
+			{
+				iter->value() = "N/A";
+			}
+
+		};
+
+		auto CategoryIter = mItemStore.begin();
+		auto ProductItemIter = CategoryIter->second.begin();
+		for (auto cellIter = xlRange.begin(); cellIter != xlRange.end(); cellIter++)
+		{
+			writeProductString(cellIter, ProductItemIter->GetProductName());
+			moveIter(cellIter);
+			writeProductString(cellIter, ProductItemIter->GetCategoryName());
+			moveIter(cellIter);
+			writeProductString(cellIter, ProductItemIter->GetProductClass());
+			moveIter(cellIter);
+			writeProductString(cellIter, ProductItemIter->GetProductActIng());
+			moveIter(cellIter);
+			writeProductString(cellIter,ProductItemIter->GetProdcutDesc());
+			moveIter(cellIter);
+			writeProductString(cellIter, ProductItemIter->GetDirForUse());
+			moveIter(cellIter);
+			cellIter->value() = ProductItemIter->GetStockCount();
+			moveIter(cellIter);
+			cellIter->value() = ProductItemIter->GetUnitPrice();
+
+			if (++ProductItemIter == CategoryIter->second.end())
+			{
+				if (++CategoryIter == mItemStore.end())
+				{
+					break;
+				}
+				ProductItemIter = CategoryIter->second.begin();
+			}
+			float updateAmount = ((float)++count / (float)totalProducts);
+			updateAmount *= 80;
+			proDlg.Update(updateAmount, wxString("Writing ") + CategoryIter->first);
+		}
+		proDlg.Update(85, "Saving file");
+		doc.save();
+		proDlg.Update(100, "Finished");
+
+	}
+	catch (const std::exception& ex)
+	{
+		wxMessageBox(ex.what(), wxT("Failed excel write"), wxOK | wxICON_ERROR);
+	}
+	
+
+}
+
 //runs on creation of the product list
 void ProductList::CreateListView()
 {
@@ -716,10 +807,16 @@ void ProductList::OnContextRemove(wxCommandEvent& event)
 				model->GetValue(itemDataName, selItem, 0);
 				model->GetValue(itemDataCategory, selItem, 2);
 				//remove from the store and the view
-				RemoveItem(GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString()));
-
-				//lol 
+				const ProductItem& item = GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString());
+				//lol, just ugly af, reflect remove on an open stat
+				if (wxGetApp().mFrame->mProductStat)
+				{
+					wxGetApp().mFrame->mProductStat->UpdateCategoryCount(item.GetCategoryName(), (*wxGetApp().mFrame->mProductList.get()), ProductStat::REMOVE);
+					
+				}
+				RemoveItem(item);
 				listView->DeleteItem(listView->ItemToRow(selItem));
+
 			}
 			else
 			{
@@ -768,6 +865,16 @@ void ProductList::OnContextDisplay(wxCommandEvent& event)
 	{
 		frame->OnProductDisplay(event);
 	}
+}
+
+std::size_t ProductList::GetTotalProducts() const
+{
+	std::size_t total = 0;
+	for (auto cat : mItemStore)
+	{
+		total += cat.second.size();
+	}
+	return total;
 }
 
 

@@ -291,11 +291,14 @@ void MainFrame::OnAddProduct(wxCommandEvent& event)
 		{
 			mCategoryList->SetSelection(index);
 		}
+		if(mProductStat)
+		mProductStat->UpdateCategoryCount(item.GetCategoryName(), *mProductList.get(), ProductStat::ADD);
 
 	}
 }
 
-
+//fucntion is duplicated in productlist, couldnt figure how to map the contex menu to 
+//in productlist to main frames tool bar, ugly i know lol 
 void MainFrame::OnRemoveProduct(wxCommandEvent& event)
 {
 	if (wxMessageBox(wxT("Are you sure you want to remove product?"), wxT("Remove product"), wxYES_NO | wxICON_INFORMATION) == wxYES)
@@ -312,15 +315,21 @@ void MainFrame::OnRemoveProduct(wxCommandEvent& event)
 				model->GetValue(itemDataName, selItem, 0);
 				model->GetValue(itemDataCategory, selItem, 2);
 				//remove from the store and the view
-				mProductList->RemoveItem(mProductList->GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString()));
+				const ProductItem& item = mProductList->GetItem(itemDataName.GetString().ToStdString(), itemDataCategory.GetString().ToStdString());
 
-				//lol 
+				//lol, reflect remove in an open stat window 
+				if (mProductStat)
+				{
+					mProductStat->UpdateCategoryCount(item.GetCategoryName(), *mProductList.get(), ProductStat::REMOVE);
+				}
+				mProductList->RemoveItem(item);
 				listView->DeleteItem(listView->ItemToRow(selItem));
 			}
 			else
 			{
 				wxMessageBox("No product selected", "Remove product");
 			}
+
 		}
 	}
 }
@@ -349,6 +358,7 @@ void MainFrame::OnAddCategory(wxCommandEvent& event)
 					mCategoryList->SetSelection(i);
 				}
 			}
+			mProductStat->InsertIntProperty(value, 0, *mProductList.get());
 		}
 	}
 
@@ -445,7 +455,16 @@ void MainFrame::OnCategoryRename(wxCommandEvent& event)
 
 void MainFrame::OnDownloadData(wxCommandEvent& event)
 {
-	mProductList->SaveJsonFile();
+	wxArrayInt selections;
+	wxArrayString choices;
+	choices.push_back("Json");
+	choices.push_back("Excel");
+	int sel = wxGetSelectedChoices(selections, wxT("Download data as:"), wxT("Download data"), choices);
+	if (sel != -1)
+	{
+		if (sel == 0) mProductList->SaveJsonFile();
+		else if (sel == 1) mProductList->SaveExcelFile();
+	}
 }
 
 void MainFrame::OnSearchForProduct(wxCommandEvent& event)

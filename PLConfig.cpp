@@ -68,7 +68,15 @@ std::string& PLConfig::operator[](const std::string& key)
 bool PLConfig::InsertConfig(const std::string& key, const std::string& value)
 {
 	auto i = mConfigMap.insert(std::make_pair(key, value));
-	return (i.second);
+	if (!i.second)
+	{
+		auto iter = mConfigMap.find(key);
+		if (iter != mConfigMap.end())
+		{
+			iter->second = value;
+		}
+	}
+	return true;
 }
 
 bool PLConfig::doLoad(std::fstream& file)

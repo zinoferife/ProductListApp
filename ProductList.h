@@ -9,7 +9,10 @@
 #include <wx/aui/auibook.h>
 #include <wx/dir.h>
 #include <json/json.h>
+#include <OpenXLSL/OpenXLSX.hpp>
 #include <wx/progdlg.h>
+
+
 
 #include <string>
 #include <set>
@@ -71,6 +74,7 @@ public:
 	const std::string& FindDatabase();
 	void ParseJsonFile();
 	void SaveJsonFile();
+	void SaveExcelFile();
 
 	//get code
 	inline std::uint32_t GetErrorCode() { return mPLErrorCode; }
@@ -125,6 +129,8 @@ public:
 
 	//test command
 
+	//get stats
+	std::size_t GetTotalProducts() const;
 
 private:
 	friend class ProductStat;
