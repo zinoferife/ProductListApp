@@ -21,8 +21,9 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_TOOL(MainFrame::ID_TOOL_ADD_CATEGORY, MainFrame::OnAddCategory)
 	EVT_TOOL(MainFrame::ID_TOOL_REMOVE_PRODUCT, MainFrame::OnRemoveProduct)
 	EVT_TOOL(MainFrame::ID_TOOL_REMOVE_CATEGORY, MainFrame::OnRemoveCategory)
-	EVT_TOOL(MainFrame::ID_TOOL_SEARCH_PRODUCT, MainFrame::OnSearchForProduct)
+	EVT_TOOL(MainFrame::ID_PRODUCT_SEARCH, MainFrame::OnSearchForProduct)
 	EVT_TOOL(MainFrame::ID_TOOL_DOWNLOAD_DATA, MainFrame::OnDownloadData)
+	EVT_SEARCHCTRL_SEARCH_BTN(MainFrame::ID_TOOL_SEARCH, MainFrame::OnSearch)
 	EVT_LISTBOX_DCLICK(MainFrame::ID_CATEGORY_LIST, MainFrame::OnCategoryListSelection)
 END_EVENT_TABLE()
 
@@ -84,8 +85,8 @@ void MainFrame::CreateToolBar()
 	toolbar->AddTool(ID_TOOL_REMOVE_PRODUCT, wxT("Remove product"), wxArtProvider::GetBitmap("delete"));
 	toolbar->AddTool(ID_TOOL_ADD_CATEGORY, wxT("Add category"), wxArtProvider::GetBitmap("file"));
 	toolbar->AddTool(ID_TOOL_REMOVE_CATEGORY, wxT("Remove category"), wxArtProvider::GetBitmap("remove"));
-	toolbar->AddTool(ID_TOOL_SEARCH_PRODUCT, wxT("Search product"), wxArtProvider::GetBitmap("search"));
 	toolbar->AddStretchSpacer();
+	toolbar->AddControl(new wxSearchCtrl(toolbar, ID_TOOL_SEARCH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER));
 	toolbar->AddTool(ID_TOOL_DOWNLOAD_DATA, wxT("Download data"), wxArtProvider::GetBitmap("download"));
 	toolbar->AddTool(ID_TOOL_USER, wxT("User"), wxArtProvider::GetBitmap("user"));
 	toolbar->Realize();
@@ -104,6 +105,7 @@ void MainFrame::CreateMenuBar()
 	wxMenu* products = new wxMenu;
 	products->Append(ID_NEW_CATEGORY, "New categorty\tCtrl-T");
 	products->Append(ID_NEW_PRODUCT, "New product\tCtrl-D");
+	products->Append(ID_PRODUCT_SEARCH, "Product search \tCtrl-Q");
 
 	wxMenu* Help = new wxMenu;
 	Help->Append(wxID_ABOUT);
@@ -362,6 +364,24 @@ void MainFrame::OnAddCategory(wxCommandEvent& event)
 		}
 	}
 
+}
+
+void MainFrame::OnSearch(wxCommandEvent& event)
+{
+	std::string value = event.GetString().ToStdString();
+	if (value.empty()) return;
+	//quadratic search, need to find a better search lol but it is what it is  
+	std::list<const ProductItem*> mItems = mProductList->SearchForProduct(value);
+	if (mItems.empty())
+	{
+		wxMessageBox("No product found", "Search product", wxOK | wxICON_INFORMATION);
+		return;
+	}
+	mProductList->ResetViewList();
+	for (auto& item : mItems)
+	{
+		mProductList->AppendToViewList(*item);
+	}
 }
 
 void MainFrame::OnRemoveCategory(wxCommandEvent& event)

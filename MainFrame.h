@@ -10,6 +10,7 @@
 #include <wx/aboutdlg.h>
 #include <wx/html/htmlwin.h>
 #include <wx/choicdlg.h>
+#include <wx/srchctrl.h>
 
 #include <fstream>
 #include <sstream>
@@ -40,12 +41,13 @@ public:
 		ID_TOOL_REMOVE_PRODUCT,
 		ID_TOOL_ADD_CATEGORY,
 		ID_TOOL_REMOVE_CATEGORY,
-		ID_TOOL_SEARCH_PRODUCT,
 		ID_TOOL_SAVE_DATABASE,
 		ID_TOOL_USER,
+		ID_TOOL_SEARCH,
 		ID_PRODUCT_LIST,
 		ID_CATEGORY_LIST,
 		ID_TOOL_DOWNLOAD_DATA,
+		ID_PRODUCT_SEARCH,
 		ID_PRODUCT_DISPLAY,
 		ID_PRODUCT_DISPLAY_WIN,
 		ID_CATEGORY_CONTEXT_REMOVE,
@@ -92,6 +94,7 @@ private:
 	void OnRemoveProduct(wxCommandEvent& event);
 	void OnProductRemoved(wxCommandEvent& evnt);
 	void OnAddCategory(wxCommandEvent& event);
+	void OnSearch(wxCommandEvent& event);
 	void OnRemoveCategory(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& event);
 	void OnCategoryListSelection(wxCommandEvent& event);

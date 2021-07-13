@@ -10,6 +10,7 @@ EVT_DATAVIEW_ITEM_EDITING_DONE(ProductList::ID_PRODUCT_VIEW, ProductList::OnProd
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(ProductList::ID_PRODUCT_VIEW, ProductList::OnContextMenu)
 EVT_MENU(ProductList::ID_CONTEXT_REMOVE, ProductList::OnContextRemove)
 EVT_MENU(ProductList::ID_CONTEXT_EDIT, ProductList::OnContextEdit)
+EVT_MENU(ProductList::ID_CONTEXT_MOVE, ProductList::OnContextMove)
 EVT_MENU(ProductList::ID_CONTEXT_DISPLAY, ProductList::OnContextDisplay)
 END_EVENT_TABLE()
 
@@ -170,7 +171,7 @@ const ProductItem& ProductList::GetItem(const std::string& ProductName, const st
 
 }
 
-const ProductItem& ProductList::GetFromDataView(wxDataViewItem& item)
+const ProductItem& ProductList::GetFromDataView(const wxDataViewItem& item)
 {
 	
 	auto model = mDataListViewControl->GetModel();
@@ -553,6 +554,11 @@ void ProductList::InsertInListView(ProductItem& item)
 
 }
 
+void ProductList::RefreshViewList()
+{
+
+}
+
 void ProductList::ShowAll()
 {
 	ResetViewList();
@@ -611,6 +617,22 @@ void ProductList::SelectProduct(const ProductItem& item)
 		mDataListViewControl->Thaw();
 		mDataListViewControl->SetFocus();
 	}
+}
+
+bool ProductList::MoveProduct(const std::string& from, const std::string& to, const ProductItem& product)
+{
+	auto fromIter = mItemStore.find(from);
+	auto toIter = mItemStore.find(to);
+	auto Moveitemiter = std::make_move_iterator(fromIter->second.find(product));
+	auto insetStat = toIter->second.insert(*Moveitemiter);
+	if (insetStat.second)
+	{
+		//change the category name. 
+		ProductItem& item = const_cast<ProductItem&>(*insetStat.first);
+		item.CategoryName() = to;
+		return true;
+	}
+	return false;
 }
 
 void ProductList::OnListItemSelectionChanged(wxDataViewEvent& event)
@@ -785,6 +807,7 @@ void ProductList::OnContextMenu(wxDataViewEvent& event)
 		wxMenu* menu = new wxMenu;
 		menu->Append(ID_CONTEXT_REMOVE, wxT("Remove product"));
 		menu->Append(ID_CONTEXT_EDIT, wxT("Edit product"));
+		menu->Append(ID_CONTEXT_MOVE, wxT("Move product"));
 		menu->Append(ID_CONTEXT_DISPLAY, wxT("Display product"));
 
 		PopupMenu(menu);
@@ -854,6 +877,27 @@ void ProductList::OnContextEdit(wxCommandEvent& event)
 		}
 
 
+	}
+}
+
+void ProductList::OnContextMove(wxCommandEvent& event)
+{
+	std::list<std::string> catList;
+	wxArrayString choices;
+	GetCategoryList(catList);
+	for (auto& i : catList)
+	{
+		choices.push_back(i);
+	}
+	wxSingleChoiceDialog dlg(this, wxT("Please select category to move to: "), wxT("Move categories"), choices);
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		const wxDataViewItem& viewItem = mDataListViewControl->GetSelection();
+		const ProductItem& sel = GetFromDataView(viewItem);
+		const std::string& from = sel.GetCategoryName();
+		const std::string to = dlg.GetStringSelection().ToStdString();
+		MoveProduct(from, to, sel);
+		mDataListViewControl->DeleteItem(mDataListViewControl->GetSelectedRow());
 	}
 }
 

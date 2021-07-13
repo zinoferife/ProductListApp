@@ -50,6 +50,7 @@ public:
 		DATABASE_SAVE_FAIL,
 		ID_CONTEXT_REMOVE,
 		ID_CONTEXT_EDIT,
+		ID_CONTEXT_MOVE,
 		ID_CONTEXT_DISPLAY
 	};
 	typedef std::unordered_map < std::string, std::set<ProductItem> > StoreType;
@@ -67,7 +68,7 @@ public:
 
 
 	const ProductItem& GetItem(const std::string& ProductName, const std::string& Category) const;
-	const ProductItem& GetFromDataView(wxDataViewItem& item);
+	const ProductItem& GetFromDataView(const wxDataViewItem& item);
 	
 	void LoadListDatabase();
 	void SaveDatabase();
@@ -87,6 +88,8 @@ public:
 	void AppendToViewList(const ProductItem& item);
 	void RemoveFromViewList(ProductItem& item);
 	void InsertInListView(ProductItem& item);
+	void ResetViewList();
+	void RefreshViewList();
 	void ShowAll();
 
 public:
@@ -95,6 +98,7 @@ public:
 	inline std::string& GetCurrentCategory() { return mCurrentCategory; }
 	void GetCategoryList(std::list<std::string>& categories);
 	void SelectProduct(const ProductItem& item);
+	bool MoveProduct(const std::string& from, const std::string& to, const ProductItem& product);
 
 private:
 	void OnListItemSelectionChanged(wxDataViewEvent& event);
@@ -125,6 +129,7 @@ public:
 	void OnContextMenu(wxDataViewEvent& event);
 	void OnContextRemove(wxCommandEvent& event);
 	void OnContextEdit(wxCommandEvent& event);
+	void OnContextMove(wxCommandEvent& event);
 	void OnContextDisplay(wxCommandEvent& event);
 
 	//test command
@@ -141,7 +146,6 @@ private:
 	bool doSave(std::fstream& file);
 	bool doLoadEmptyCategoryNames();
 	bool updateViewList(StoreIterator iterator);
-	void ResetViewList();
 	void WriteErrorCode(int errorCode);
 	//GUI
 	std::shared_ptr<wxDataViewListCtrl> mDataListViewControl;
