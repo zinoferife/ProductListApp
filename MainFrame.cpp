@@ -360,7 +360,7 @@ void MainFrame::OnAddCategory(wxCommandEvent& event)
 					mCategoryList->SetSelection(i);
 				}
 			}
-			mProductStat->InsertIntProperty(value, 0, *mProductList.get());
+			if(mProductStat) mProductStat->InsertIntProperty(value, 0, *mProductList.get());
 		}
 	}
 
@@ -377,11 +377,9 @@ void MainFrame::OnSearch(wxCommandEvent& event)
 		wxMessageBox("No product found", "Search product", wxOK | wxICON_INFORMATION);
 		return;
 	}
+
 	mProductList->ResetViewList();
-	for (auto& item : mItems)
-	{
-		mProductList->AppendToViewList(*item);
-	}
+	mProductList->AppendMultiItemToViewList(mItems);
 }
 
 void MainFrame::OnRemoveCategory(wxCommandEvent& event)
@@ -479,11 +477,17 @@ void MainFrame::OnDownloadData(wxCommandEvent& event)
 	wxArrayString choices;
 	choices.push_back("Json");
 	choices.push_back("Excel");
+	choices.push_back("Excel lean");
 	int sel = wxGetSelectedChoices(selections, wxT("Download data as:"), wxT("Download data"), choices);
 	if (sel != -1)
 	{
-		if (sel == 0) mProductList->SaveJsonFile();
-		else if (sel == 1) mProductList->SaveExcelFile();
+		if (selections.empty()) return;
+		for (auto i : selections)
+		{
+			if (choices[i] == "Json") mProductList->SaveJsonFile();
+			if (choices[i] == "Excel") mProductList->SaveExcelFile();
+			if (choices[i] == "Excel lean") mProductList->SaveExcelLeanFile();
+		}
 	}
 }
 

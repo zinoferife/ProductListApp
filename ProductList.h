@@ -35,7 +35,7 @@ public:
 	{
 		ID_PRODUCT_VIEW
 	};
-	
+
 	//error codes
 	enum
 	{
@@ -60,7 +60,7 @@ public:
 	ProductList(wxWindow* parent, wxWindowID id, const wxPoint& position, const wxSize& size);
 
 	bool HasCategory(const std::string& category, StoreIterator* Founditer);
-	inline bool IsEmpty() const { return mItemStore.empty();  }
+	inline bool IsEmpty() const { return mItemStore.empty(); }
 	bool AddItem(const std::string& category, const ProductItem& item);
 	bool AddItem(const ProductItem& item);
 	bool RemoveItem(const std::string& category, const ProductItem& item);
@@ -69,14 +69,14 @@ public:
 
 	const ProductItem& GetItem(const std::string& ProductName, const std::string& Category) const;
 	const ProductItem& GetFromDataView(const wxDataViewItem& item);
-	
+
 	void LoadListDatabase();
 	void SaveDatabase();
 	const std::string& FindDatabase();
 	void ParseJsonFile();
 	void SaveJsonFile();
 	void SaveExcelFile();
-
+	void SaveExcelLeanFile();
 	//get code
 	inline std::uint32_t GetErrorCode() { return mPLErrorCode; }
 
@@ -86,6 +86,7 @@ public:
 	void CreateListView();
 	std::shared_ptr<wxDataViewListCtrl> GetListControl();
 	void AppendToViewList(const ProductItem& item);
+	void AppendMultiItemToViewList(const std::list<const ProductItem*>& items);
 	void RemoveFromViewList(ProductItem& item);
 	void InsertInListView(ProductItem& item);
 	void ResetViewList();
@@ -161,7 +162,7 @@ private:
 
 	//Search
 	std::regex MakeRegexString(const std::string& searchString);
-
+	void UpdateStatView(const std::string& category, int func);
 
 private:
 	//thread semantics

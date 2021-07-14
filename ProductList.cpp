@@ -415,6 +415,8 @@ void ProductList::SaveExcelFile()
 		auto ProductItemIter = CategoryIter->second.begin();
 		for (auto cellIter = xlRange.begin(); cellIter != xlRange.end(); cellIter++)
 		{
+			
+
 			writeProductString(cellIter, ProductItemIter->GetProductName());
 			moveIter(cellIter);
 			writeProductString(cellIter, ProductItemIter->GetCategoryName());
@@ -433,10 +435,12 @@ void ProductList::SaveExcelFile()
 
 			if (++ProductItemIter == CategoryIter->second.end())
 			{
-				if (++CategoryIter == mItemStore.end())
-				{
-					break;
-				}
+				do {
+					if (++CategoryIter == mItemStore.end())
+					{
+						break;
+					}
+				} while (CategoryIter->second.empty());
 				ProductItemIter = CategoryIter->second.begin();
 			}
 			float updateAmount = ((float)++count / (float)totalProducts);
@@ -453,6 +457,92 @@ void ProductList::SaveExcelFile()
 		wxMessageBox(ex.what(), wxT("Failed excel write"), wxOK | wxICON_ERROR);
 	}
 	
+
+}
+
+void ProductList::SaveExcelLeanFile()
+{
+	wxProgressDialog proDlg(wxT("Download data"), wxT("Save Data as Excel"), 100, this, wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_REMAINING_TIME);
+	std::string mPath = wxGetApp().mApplicationPath.ToStdString() + "\\ProductDataLean.xlsx";
+	OpenXLSX::XLDocument doc;
+	std::uint16_t count = 0;
+	try {
+		doc.create(mPath);
+		auto wks = doc.workbook().worksheet("Sheet1");
+		//write headers
+		wks.cell(OpenXLSX::XLCellReference("A1")).value() = "Product name";
+		wks.cell(OpenXLSX::XLCellReference("B1")).value() = "Product Category";
+		wks.cell(OpenXLSX::XLCellReference("C1")).value() = "Product Class";
+		wks.cell(OpenXLSX::XLCellReference("D1")).value() = "Stock count";
+		wks.cell(OpenXLSX::XLCellReference("E1")).value() = "Unit price";
+
+		//write the data by writing the product into each cell
+		const std::size_t totalProducts = GetTotalProducts();
+		auto xlRange = wks.range(OpenXLSX::XLCellReference("A2"), OpenXLSX::XLCellReference(totalProducts, 5));
+		auto xlIter = xlRange.begin();
+		auto moveIter = [&](OpenXLSX::XLCellIterator& iter)
+		{
+			std::advance(iter, 1);
+			if (iter == xlRange.end())
+			{
+				throw std::exception("Iterator reached end");
+			}
+		};
+
+		auto writeProductString = [](OpenXLSX::XLCellIterator& iter, const std::string& data)
+		{
+			if (!data.empty())
+			{
+				iter->value() = data;
+			}
+			else
+			{
+				iter->value() = "N/A";
+			}
+
+		};
+
+		auto CategoryIter = mItemStore.begin();
+		auto ProductItemIter = CategoryIter->second.begin();
+		for (auto cellIter = xlRange.begin(); cellIter != xlRange.end(); cellIter++)
+		{
+
+
+			writeProductString(cellIter, ProductItemIter->GetProductName());
+			moveIter(cellIter);
+			writeProductString(cellIter, ProductItemIter->GetCategoryName());
+			moveIter(cellIter);
+			writeProductString(cellIter, ProductItemIter->GetProductClass());
+			moveIter(cellIter);
+			cellIter->value() = ProductItemIter->GetStockCount();
+			moveIter(cellIter);
+			cellIter->value() = ProductItemIter->GetUnitPrice();
+
+			if (++ProductItemIter == CategoryIter->second.end())
+			{
+				do {
+					if (++CategoryIter == mItemStore.end())
+					{
+						break;
+					}
+				} while (CategoryIter->second.empty());
+				ProductItemIter = CategoryIter->second.begin();
+			}
+			float updateAmount = ((float)++count / (float)totalProducts);
+			updateAmount *= 80;
+			proDlg.Update(updateAmount, wxString("Writing ") + CategoryIter->first);
+		}
+		proDlg.Update(85, "Saving file");
+		doc.save();
+		proDlg.Update(100, "Finished");
+
+	}
+	catch (const std::exception& ex)
+	{
+		wxMessageBox(ex.what(), wxT("Failed excel write"), wxOK | wxICON_ERROR);
+	}
+
+
 
 }
 
@@ -511,6 +601,17 @@ void ProductList::AppendToViewList(const ProductItem& item)
 
 	mDataListViewControl->AppendItem(mdata);
 
+}
+
+void ProductList::AppendMultiItemToViewList(const std::list<const ProductItem*>& items)
+{
+	if (items.empty()) return;
+	mDataListViewControl->Freeze();
+	for (auto i : items)
+	{
+		AppendToViewList(*i);
+	}
+	mDataListViewControl->Thaw();
 }
 
 void ProductList::RemoveFromViewList(ProductItem& item)
@@ -625,6 +726,7 @@ bool ProductList::MoveProduct(const std::string& from, const std::string& to, co
 	auto toIter = mItemStore.find(to);
 	auto Moveitemiter = std::make_move_iterator(fromIter->second.find(product));
 	auto insetStat = toIter->second.insert(*Moveitemiter);
+	fromIter->second.erase(fromIter->second.find(product));
 	if (insetStat.second)
 	{
 		//change the category name. 
@@ -774,7 +876,7 @@ void ProductList::OnProductEdited(ProductItem& oldItem, ProductItem& newItem)
 	StoreIterator itemSet;
 	if (mCurrentCategory != ALL_CATEGORIES)
 	{
-		itemSet = mItemStore.find(mCurrentCategory);
+		itemSet = mItemStore.find(oldItem.GetCategoryName());
 	}
 	else
 	{
@@ -894,10 +996,19 @@ void ProductList::OnContextMove(wxCommandEvent& event)
 	{
 		const wxDataViewItem& viewItem = mDataListViewControl->GetSelection();
 		const ProductItem& sel = GetFromDataView(viewItem);
-		const std::string& from = sel.GetCategoryName();
+		const std::string from = sel.GetCategoryName();
 		const std::string to = dlg.GetStringSelection().ToStdString();
-		MoveProduct(from, to, sel);
-		mDataListViewControl->DeleteItem(mDataListViewControl->GetSelectedRow());
+		if (to != from)
+		{
+			MoveProduct(from, to, sel);
+			UpdateStatView(from, ProductStat::REMOVE);
+			UpdateStatView(to, ProductStat::ADD);
+			mDataListViewControl->DeleteItem(mDataListViewControl->GetSelectedRow());
+		}
+		else
+		{
+			wxMessageBox("Trying to move to same category", "Move product");
+		}
 	}
 }
 
@@ -1107,6 +1218,7 @@ void ProductList::ResetViewList()
 {
 	mDataListViewControl->Freeze();
 	mDataListViewControl->DeleteAllItems();
+	mCurrentCategory.clear();
 	mDataListViewControl->Thaw();
 	mDataListViewControl->Update();
 }
@@ -1150,6 +1262,12 @@ std::regex ProductList::MakeRegexString(const std::string& searchString)
 	temp += "(?:.*)?";
 	return std::regex(temp);
 
+}
+
+void ProductList::UpdateStatView(const std::string& category, int func)
+{
+	auto& stat = wxGetApp().mFrame->mProductStat;
+	if(stat) stat->UpdateCategoryCount(category, *this, func);
 }
 
 void ProductList::PlugViewEventHandlers()

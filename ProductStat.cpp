@@ -62,7 +62,7 @@ void ProductStat::UpdateCategoryCount(const std::string& category, ProductList& 
 		{
 			if (iter != store.mItemStore.end())
 			{
-				SetIntProperty(category, iter->second.size() - 1);
+				SetIntProperty(category, iter->second.size());
 				mTotal--;
 				SetIntProperty("Total product in store", mTotal);
 			}
