@@ -11,7 +11,7 @@
 #include <json/json.h>
 #include <OpenXLSL/OpenXLSX.hpp>
 #include <wx/progdlg.h>
-
+#include <wx/utils.h>
 
 
 #include <string>
@@ -22,6 +22,7 @@
 #include <mutex>
 #include <memory>
 #include <regex>
+#include <cstdio>
 #include <unordered_map>
 #include "ProductItem.h"
 #include "ProductDialog.h"
@@ -51,6 +52,7 @@ public:
 		ID_CONTEXT_REMOVE,
 		ID_CONTEXT_EDIT,
 		ID_CONTEXT_MOVE,
+		ID_CONTEXT_RENAME_IMAGE,
 		ID_CONTEXT_DISPLAY
 	};
 	typedef std::unordered_map < std::string, std::set<ProductItem> > StoreType;
@@ -132,6 +134,10 @@ public:
 	void OnContextEdit(wxCommandEvent& event);
 	void OnContextMove(wxCommandEvent& event);
 	void OnContextDisplay(wxCommandEvent& event);
+
+	//to be removed
+	void OnContextAddImageAndRename(wxCommandEvent& event);
+
 
 	//test command
 

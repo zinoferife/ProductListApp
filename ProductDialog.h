@@ -5,6 +5,7 @@
 #endif //WX_PRECOMP
 #include <wx/statline.h>
 #include <wx/collpane.h>
+#include <wx/spinctrl.h>
 
 #include <string>
 #include "ProductItem.h"
@@ -54,6 +55,7 @@ private:
 	wxTextCtrl* mProductDirForUseCtrl;
 	wxTextCtrl* mProductUnitPriceCtrl;
 	wxTextCtrl* mProductStockCtrl;
+	wxSpinCtrl* mProductPackageSizeCtrl;
 	wxArrayString choices;
 
 private:

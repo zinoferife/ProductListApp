@@ -5,11 +5,11 @@ char* ProductItem::buffer = nullptr;
 
 ProductItem::ProductItem()
 :mProductID{0},
-mStockCount{ 0 }, mUnitPrice{0.0}{
+mStockCount{ 0 }, mPackageSize{0}, mUnitPrice{ 0.0 }{
 }
 
-ProductItem::ProductItem(std::uint64_t id, const std::string& ProductName, const std::string& productActIng, const std::string& CategoryName, const std::string& ProductDesc, const std::string& DirForUse, const std::string& ProductClass, std::uint32_t stockCount, float unitPrice)
-	: mProductID{id}, mProductName(ProductName), mProductActiveIngredent(productActIng), mCategoryName(CategoryName), mProductDesc(ProductDesc), mDirForUse(DirForUse), mProductClass(ProductClass), mStockCount(stockCount), mUnitPrice(unitPrice) {
+ProductItem::ProductItem(std::uint64_t id, const std::string& ProductName, const std::string& productActIng, const std::string& CategoryName, const std::string& ProductDesc, const std::string& DirForUse, const std::string& ProductClass, std::uint32_t stockCount, std::uint32_t packagesize, float unitPrice)
+	: mProductID{id}, mProductName(ProductName), mProductActiveIngredent(productActIng), mCategoryName(CategoryName), mProductDesc(ProductDesc), mDirForUse(DirForUse), mProductClass(ProductClass), mStockCount(stockCount), mPackageSize(packagesize),mUnitPrice(unitPrice) {
 }
 
 ProductItem::~ProductItem()
@@ -34,6 +34,7 @@ ProductItem& ProductItem::operator=(const ProductItem& product)
 	mDirForUse = product.mDirForUse;
 	mProductClass = product.mProductClass;
 	mStockCount = product.mStockCount;
+	mPackageSize = product.mPackageSize;
 	mUnitPrice = product.mUnitPrice;
 	mHealthTag = product.mHealthTag;
 	return(*this);
@@ -54,6 +55,7 @@ ProductItem& ProductItem::operator=(const ProductItem&& product) noexcept
 	mDirForUse = std::move(product.mDirForUse);
 	mProductClass = std::move(product.mProductClass);
 	mStockCount = product.mStockCount;
+	mPackageSize = product.mPackageSize;
 	mUnitPrice = product.mUnitPrice;
 	mHealthTag = product.mHealthTag;
 	return (*this);
@@ -100,6 +102,7 @@ ProductItem::ProductItem(const ProductItem& product)
 	mDirForUse = product.mDirForUse;
 	mProductClass = product.mProductClass;
 	mStockCount = product.mStockCount;
+	mPackageSize = product.mPackageSize;
 	mUnitPrice = product.mUnitPrice;
 	mHealthTag = product.mHealthTag;
 }
@@ -114,6 +117,7 @@ ProductItem::ProductItem(ProductItem&& product) noexcept
 	mDirForUse = std::move(product.mDirForUse);
 	mProductClass = std::move(product.mProductClass);
 	mStockCount = product.mStockCount;
+	mPackageSize = product.mPackageSize;
 	mUnitPrice = product.mUnitPrice;
 	mHealthTag = product.mHealthTag;
 
@@ -128,6 +132,7 @@ std::size_t ProductItem::GetMemSpace()
 	bytes += sizeof(std::string::value_type) * mProductDesc.size();
 	bytes += sizeof(std::string::value_type) * mDirForUse.size();
 	bytes += sizeof(std::string::value_type) * mProductClass.size();
+	bytes += sizeof(std::uint32_t);
 	bytes += sizeof(std::uint32_t);
 	bytes += sizeof(float);
 	return bytes;
@@ -228,6 +233,9 @@ std::ostream& operator<<(std::ostream& os, const ProductItem& item)
 	bytes = sizeof(std::uint32_t);
 	os.write((const char*)& item.mStockCount, bytes);
 
+	bytes = sizeof(std::uint32_t);
+	os.write((const char*)& item.mPackageSize, bytes);
+
 	bytes = sizeof(float);
 	os.write((const char*)& item.mUnitPrice, bytes);
 
@@ -260,6 +268,9 @@ std::istream& operator>>(std::istream& os, ProductItem& item)
 
 	bytes = sizeof(std::uint32_t);
 	os.read((char*)& item.mStockCount, bytes);
+
+	bytes = sizeof(std::uint32_t);
+	os.read((char*)& item.mPackageSize, bytes);
 
 	bytes = sizeof(float);
 	os.read((char*)& item.mUnitPrice, bytes);

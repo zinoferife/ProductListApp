@@ -16,6 +16,7 @@
 #include <wx/colour.h>
 #include <wx/settings.h>
 #include <wx/textctrl.h>
+#include <wx/spinctrl.h>
 #include <wx/combobox.h>
 #include <wx/bmpbuttn.h>
 #include <wx/bitmap.h>

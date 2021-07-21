@@ -63,6 +63,7 @@ bool ProductDialog::TransferDataFromWindow()
 	mProductUnitPriceCtrl->GetValue().ToCDouble((double*)&price);
 	mItemDataRef->UnitPrice() = price;
 	mProductStockCtrl->GetValue().ToLong((long*)&(mItemDataRef->StockCount()));
+	mItemDataRef->PackageSize() = mProductPackageSizeCtrl->GetValue();
 	return true;
 }
 
@@ -76,6 +77,7 @@ bool ProductDialog::TransferDataToWindow()
 	//might cause a problem due to non numeric characters 
 	mProductStockCtrl->SetValue(std::to_string(mItemDataRef->StockCount()));
 	mProductUnitPriceCtrl->SetValue(std::to_string(mItemDataRef->UnitPrice()));
+	mProductPackageSizeCtrl->SetValue(mItemDataRef->GetPackageSize());
 	mTaglist = mItemDataRef->GetHealthTag();
 	return true;
 }
@@ -101,8 +103,9 @@ void ProductDialog::CreateControls()
 	mProductDirForUseCtrl->AutoComplete(new TextAutoComplete);
 	mProductUnitPriceCtrl = new wxTextCtrl(this, wxID_ANY);
 	mProductStockCtrl = new wxTextCtrl(this, wxID_ANY);
+	mProductPackageSizeCtrl = new wxSpinCtrl(this, wxID_ANY);
 
-	wxStaticText* descp[9] = {
+	wxStaticText* descp[10] = {
 		new wxStaticText(this, wxID_ANY, wxT("Please enter a product to the system")),
 		new wxStaticText(this, wxID_ANY, wxT("Product category:")),
 		new wxStaticText(this, wxID_ANY, wxT("Product name:")),
@@ -110,6 +113,7 @@ void ProductDialog::CreateControls()
 		new wxStaticText(wPane, wxID_ANY, wxT("Product description:")),
 		new wxStaticText(wPane, wxID_ANY, wxT("Product direction for use:")),
 		new wxStaticText(this, wxID_ANY, wxT("Product unit price:")),
+		new wxStaticText(this, wxID_ANY, wxT("Product package size:")),
 		new wxStaticText(this, wxID_ANY, wxT("Product stock count:")),
 		new wxStaticText(this, wxID_ANY, wxT("Product class:"))
 	};
@@ -139,7 +143,7 @@ void ProductDialog::CreateControls()
 
 	boxSizer->Add(descp[0], 0, wxALIGN_LEFT | wxALL, 5);
 
-	classSizer->Add(descp[8], 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	classSizer->Add(descp[9], 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	classSizer->Add(mProductClassCtrl, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	boxSizer->Add(classSizer, wxALIGN_LEFT | wxALL, 5);
@@ -167,8 +171,11 @@ void ProductDialog::CreateControls()
 	boxSizer->Add(descp[6], 0, wxALIGN_LEFT | wxALL, 5);
 	boxSizer->Add(mProductUnitPriceCtrl, 0, wxGROW | wxALL, 5);
 
-	boxSizer->Add(descp[7], 0, wxALIGN_LEFT | wxALL, 5);
+	boxSizer->Add(descp[8], 0, wxALIGN_LEFT | wxALL, 5);
 	boxSizer->Add(mProductStockCtrl, 0, wxGROW | wxALL, 5);
+	
+	boxSizer->Add(descp[7], 0, wxALIGN_LEFT | wxALL, 5);
+	boxSizer->Add(mProductPackageSizeCtrl, 0, wxGROW | wxALL, 5);
 
 	wxStaticLine* line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
 	boxSizer->Add(line, 0, wxGROW | wxALL, 5);

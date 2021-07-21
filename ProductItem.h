@@ -30,6 +30,7 @@ public:
 		const std::string& DirForUse,
 		const std::string& ProductClass,
 		std::uint32_t stockCount,
+		std::uint32_t packageSize,
 		float uintPrice);
 
 
@@ -75,6 +76,9 @@ public:
 	inline std::uint32_t GetStockCount() const { return mStockCount; }
 	std::uint32_t& StockCount() { return mStockCount; }
 
+	inline std::uint32_t GetPackageSize() const { return mPackageSize; }
+	std::uint32_t& PackageSize() { return mPackageSize; }
+
 	inline float GetUnitPrice() const { return mUnitPrice; }
 	float& UnitPrice() { return mUnitPrice; }
 
@@ -113,6 +117,7 @@ private:
 	std::string mDirForUse;
 	std::string mProductClass;
 	std::uint32_t mStockCount;
+	std::uint32_t mPackageSize;
 	float mUnitPrice;	
 
 private:

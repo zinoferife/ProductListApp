@@ -12,6 +12,7 @@ EVT_MENU(ProductList::ID_CONTEXT_REMOVE, ProductList::OnContextRemove)
 EVT_MENU(ProductList::ID_CONTEXT_EDIT, ProductList::OnContextEdit)
 EVT_MENU(ProductList::ID_CONTEXT_MOVE, ProductList::OnContextMove)
 EVT_MENU(ProductList::ID_CONTEXT_DISPLAY, ProductList::OnContextDisplay)
+EVT_MENU(ProductList::ID_CONTEXT_RENAME_IMAGE, ProductList::OnContextAddImageAndRename)
 END_EVENT_TABLE()
 
 ProductList::ProductList(wxWindow* parent, wxWindowID id, const wxPoint& position, const wxSize& size)
@@ -560,6 +561,7 @@ void ProductList::CreateListView()
 		mDataListViewControl->AppendTextColumn("Class", wxDATAVIEW_CELL_INERT, 100);
 		mDataListViewControl->AppendTextColumn("Active ingredent", wxDATAVIEW_CELL_INERT, 180);
 		mDataListViewControl->AppendTextColumn("Stock count", wxDATAVIEW_CELL_INERT, 100);
+		mDataListViewControl->AppendTextColumn("Package size", wxDATAVIEW_CELL_INERT, 100);
 		mDataListViewControl->AppendTextColumn("Unit price (N)", wxDATAVIEW_CELL_INERT, 100);
 		mDataListViewControl->Update();
 
@@ -594,6 +596,7 @@ void ProductList::AppendToViewList(const ProductItem& item)
 	mdata.push_back(wxVariant(item.GetProductClass()));
 	mdata.push_back(wxVariant(item.GetProductActIng()));
 	mdata.push_back(wxVariant(std::to_string(item.GetStockCount())));
+	mdata.push_back(wxVariant(std::to_string(item.GetPackageSize())));
 
 	wxString price;
 	price.sprintf("%.2f", item.GetUnitPrice());
@@ -910,6 +913,7 @@ void ProductList::OnContextMenu(wxDataViewEvent& event)
 		menu->Append(ID_CONTEXT_REMOVE, wxT("Remove product"));
 		menu->Append(ID_CONTEXT_EDIT, wxT("Edit product"));
 		menu->Append(ID_CONTEXT_MOVE, wxT("Move product"));
+		menu->Append(ID_CONTEXT_RENAME_IMAGE, wxT("Add image to product"));
 		menu->Append(ID_CONTEXT_DISPLAY, wxT("Display product"));
 
 		PopupMenu(menu);
@@ -1020,6 +1024,48 @@ void ProductList::OnContextDisplay(wxCommandEvent& event)
 	{
 		frame->OnProductDisplay(event);
 	}
+}
+std::string RemoveSlash(const std::string& text)
+{
+	std::size_t pos = text.find_first_of("/");
+	if (pos != std::string::npos)
+	{
+		std::string retString = text.substr(0, pos) + "-" + text.substr(pos + 1, text.size());
+		return retString;
+	}
+	else
+	{
+		return text;
+	}
+}
+
+
+
+void ProductList::OnContextAddImageAndRename(wxCommandEvent& event)
+{
+	std::string filename = wxFileSelector(wxT("Select an image file"), wxT("C:\\Users\\ferif\\OneDrive\\Documents\\D-glopa Online pharmacy\\Images\\SELECTED ONES")).ToStdString();
+	if (!filename.empty())
+	{
+		std::size_t pos = filename.find_last_of("\\");
+		if (pos != std::string::npos)
+		{
+			const ProductItem& item = GetFromDataView(mDataListViewControl->GetSelection());
+			if (!item.IsEmpty())
+			{
+				std::string newName = filename.substr(0, pos + 1) + RemoveSlash(item.GetProductName()) + ".JPG";
+				int ret = std::rename(filename.c_str(), newName.c_str());
+				if (ret == 0)
+				{
+					wxMessageBox("File renamed", wxT("Rename image file"));
+				}
+				else
+				{
+					wxMessageBox("Could not rename file error", wxT("Rename image file"));
+				}
+			}
+		}
+	}
+
 }
 
 std::size_t ProductList::GetTotalProducts() const
