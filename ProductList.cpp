@@ -335,6 +335,7 @@ void ProductList::SaveJsonFile()
 			productITem["Product Description"] = item.GetProdcutDesc();
 			productITem["Direction for use"] = item.GetDirForUse();
 			productITem["Stock count"] = item.GetStockCount();
+			productITem["Package size"] = item.GetPackageSize();
 			productITem["Unit price"] = item.GetUnitPrice();
 
 			Json::Value HealthTags(Json::arrayValue);
@@ -383,11 +384,12 @@ void ProductList::SaveExcelFile()
 		wks.cell(OpenXLSX::XLCellReference("E1")).value() = "Product Description";
 		wks.cell(OpenXLSX::XLCellReference("F1")).value() = "Direction for use";
 		wks.cell(OpenXLSX::XLCellReference("G1")).value() = "Stock count";
-		wks.cell(OpenXLSX::XLCellReference("H1")).value() = "Unit price";
+		wks.cell(OpenXLSX::XLCellReference("H1")).value() = "Package size";
+		wks.cell(OpenXLSX::XLCellReference("I1")).value() = "Unit price";
 
 		//write the data by writing the product into each cell
 		const std::size_t totalProducts = GetTotalProducts();
-		auto xlRange = wks.range(OpenXLSX::XLCellReference("A2"), OpenXLSX::XLCellReference(totalProducts, 8));
+		auto xlRange = wks.range(OpenXLSX::XLCellReference("A2"), OpenXLSX::XLCellReference(totalProducts, 9));
 		auto xlIter = xlRange.begin();
 		
 		auto moveIter = [&](OpenXLSX::XLCellIterator& iter)
@@ -432,6 +434,8 @@ void ProductList::SaveExcelFile()
 			moveIter(cellIter);
 			cellIter->value() = ProductItemIter->GetStockCount();
 			moveIter(cellIter);
+			cellIter->value() = ProductItemIter->GetPackageSize();
+			moveIter(cellIter);
 			cellIter->value() = ProductItemIter->GetUnitPrice();
 
 			if (++ProductItemIter == CategoryIter->second.end())
@@ -475,11 +479,12 @@ void ProductList::SaveExcelLeanFile()
 		wks.cell(OpenXLSX::XLCellReference("B1")).value() = "Product Category";
 		wks.cell(OpenXLSX::XLCellReference("C1")).value() = "Product Class";
 		wks.cell(OpenXLSX::XLCellReference("D1")).value() = "Stock count";
-		wks.cell(OpenXLSX::XLCellReference("E1")).value() = "Unit price";
+		wks.cell(OpenXLSX::XLCellReference("E1")).value() = "Package size";
+		wks.cell(OpenXLSX::XLCellReference("F1")).value() = "Unit price";
 
 		//write the data by writing the product into each cell
 		const std::size_t totalProducts = GetTotalProducts();
-		auto xlRange = wks.range(OpenXLSX::XLCellReference("A2"), OpenXLSX::XLCellReference(totalProducts, 5));
+		auto xlRange = wks.range(OpenXLSX::XLCellReference("A2"), OpenXLSX::XLCellReference(totalProducts, 6));
 		auto xlIter = xlRange.begin();
 		auto moveIter = [&](OpenXLSX::XLCellIterator& iter)
 		{
@@ -516,6 +521,8 @@ void ProductList::SaveExcelLeanFile()
 			writeProductString(cellIter, ProductItemIter->GetProductClass());
 			moveIter(cellIter);
 			cellIter->value() = ProductItemIter->GetStockCount();
+			moveIter(cellIter);
+			cellIter->value() = ProductItemIter->GetPackageSize();
 			moveIter(cellIter);
 			cellIter->value() = ProductItemIter->GetUnitPrice();
 
@@ -648,6 +655,7 @@ void ProductList::InsertInListView(ProductItem& item)
 	mdata.push_back(wxVariant(item.GetProductClass()));
 	mdata.push_back(wxVariant(item.GetProductActIng()));
 	mdata.push_back(wxVariant(std::to_string(item.GetStockCount())));
+	mdata.push_back(wxVariant(std::to_string(item.GetPackageSize())));
 
 	wxString price;
 	price.sprintf("%.2f", item.GetUnitPrice());

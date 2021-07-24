@@ -596,7 +596,9 @@ wxString MainFrame::ProductDisplayText(const ProductItem& item)
 	htmlData << "<html><body>";
 	htmlData << "<h3>" << item.GetProductName() << "</h3>";
 	htmlData << "<br><b>Active ingredent: " << item.GetProductActIng() << "</b><br>";
-	htmlData << "<br><b> Class: " << item.GetProductClass() << " Category: " << item.GetCategoryName() << "</b><br>";
+	htmlData << "<br><b> Class: " << item.GetProductClass() << "</b><br>"; 
+	htmlData << "<br><b> Category: " << item.GetCategoryName() << "</b><br>";
+	htmlData << "<br><b> Package size: " << item.GetPackageSize() << "</b><br>";
 	htmlData << "<br/><b>Product description</b><br>";
 	htmlData << "<p>" << item.GetProdcutDesc() << "</p>";
 	htmlData << "<p></p>";

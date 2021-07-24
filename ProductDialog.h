@@ -6,6 +6,7 @@
 #include <wx/statline.h>
 #include <wx/collpane.h>
 #include <wx/spinctrl.h>
+#include <wx/valnum.h>
 
 #include <string>
 #include "ProductItem.h"
@@ -54,7 +55,7 @@ private:
 	wxTextCtrl* mProductDescCtrl;
 	wxTextCtrl* mProductDirForUseCtrl;
 	wxTextCtrl* mProductUnitPriceCtrl;
-	wxTextCtrl* mProductStockCtrl;
+	wxSpinCtrl* mProductStockCtrl;
 	wxSpinCtrl* mProductPackageSizeCtrl;
 	wxArrayString choices;
 

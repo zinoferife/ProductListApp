@@ -58,25 +58,24 @@ bool ProductDialog::TransferDataFromWindow()
 	mItemDataRef->ProductActiveIng() = mProductActiveIngredentCtrl->GetValue().ToStdString();
 	mItemDataRef->ProductDesc() = mProductDescCtrl->GetValue().ToStdString();
 	mItemDataRef->DirForUse() = mProductDirForUseCtrl->GetValue().ToStdString();
-	mItemDataRef->ProductClass() = choices[mProductClassCtrl->GetSelection()].ToStdString();
+	mItemDataRef->ProductClass() = choices[mProductClassCtrl->GetSelection() == -1 ? 0 : mProductClassCtrl->GetSelection()].ToStdString();
 	double price;
-	mProductUnitPriceCtrl->GetValue().ToCDouble((double*)&price);
-	mItemDataRef->UnitPrice() = price;
-	mProductStockCtrl->GetValue().ToLong((long*)&(mItemDataRef->StockCount()));
+	bool con = mProductUnitPriceCtrl->GetValue().ToCDouble((double*)&price);
+	con ? mItemDataRef->UnitPrice() = price : mItemDataRef->UnitPrice() = 0.0;
+	mItemDataRef->StockCount() = mProductStockCtrl->GetValue();
 	mItemDataRef->PackageSize() = mProductPackageSizeCtrl->GetValue();
 	return true;
 }
 
 bool ProductDialog::TransferDataToWindow()
 {
-	mProductNameCtrl->SetValue(mItemDataRef->ProductName());
+	mProductNameCtrl->SetValue(mItemDataRef->GetProductName());
 	mProductActiveIngredentCtrl->SetValue(mItemDataRef->ProductActiveIng());
 	mProductDescCtrl->SetValue(mItemDataRef->ProductDesc());
 	mProductDirForUseCtrl->SetValue(mItemDataRef->DirForUse());
-
-	//might cause a problem due to non numeric characters 
-	mProductStockCtrl->SetValue(std::to_string(mItemDataRef->StockCount()));
-	mProductUnitPriceCtrl->SetValue(std::to_string(mItemDataRef->UnitPrice()));
+	mProductClassCtrl->SetSelection(choices.Index(mItemDataRef->ProductClass()));
+	mProductStockCtrl->SetValue(mItemDataRef->StockCount());;
+	mProductUnitPriceCtrl->SetValue(wxString::Format("%.2f", mItemDataRef->GetUnitPrice()));
 	mProductPackageSizeCtrl->SetValue(mItemDataRef->GetPackageSize());
 	mTaglist = mItemDataRef->GetHealthTag();
 	return true;
@@ -102,8 +101,8 @@ void ProductDialog::CreateControls()
 	mProductDirForUseCtrl = new wxTextCtrl(wPane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
 	mProductDirForUseCtrl->AutoComplete(new TextAutoComplete);
 	mProductUnitPriceCtrl = new wxTextCtrl(this, wxID_ANY);
-	mProductStockCtrl = new wxTextCtrl(this, wxID_ANY);
-	mProductPackageSizeCtrl = new wxSpinCtrl(this, wxID_ANY);
+	mProductStockCtrl = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS | wxALIGN_LEFT,0, 10000);
+	mProductPackageSizeCtrl = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS | wxALIGN_LEFT, 0, 10000);
 
 	wxStaticText* descp[10] = {
 		new wxStaticText(this, wxID_ANY, wxT("Please enter a product to the system")),
@@ -112,7 +111,7 @@ void ProductDialog::CreateControls()
 		new wxStaticText(this, wxID_ANY, wxT("Product active ingredent:")),
 		new wxStaticText(wPane, wxID_ANY, wxT("Product description:")),
 		new wxStaticText(wPane, wxID_ANY, wxT("Product direction for use:")),
-		new wxStaticText(this, wxID_ANY, wxT("Product unit price:")),
+		new wxStaticText(this, wxID_ANY, wxT("Product unit price(N):")),
 		new wxStaticText(this, wxID_ANY, wxT("Product package size:")),
 		new wxStaticText(this, wxID_ANY, wxT("Product stock count:")),
 		new wxStaticText(this, wxID_ANY, wxT("Product class:"))
@@ -168,14 +167,19 @@ void ProductDialog::CreateControls()
 
 	boxSizer->Add(pane, wxSizerFlags().Expand().Border(wxALL, 5));
 
-	boxSizer->Add(descp[6], 0, wxALIGN_LEFT | wxALL, 5);
-	boxSizer->Add(mProductUnitPriceCtrl, 0, wxGROW | wxALL, 5);
+	wxFlexGridSizer* flexSizer = new wxFlexGridSizer(3,2,5,5);
 
-	boxSizer->Add(descp[8], 0, wxALIGN_LEFT | wxALL, 5);
-	boxSizer->Add(mProductStockCtrl, 0, wxGROW | wxALL, 5);
+
+	flexSizer->Add(descp[6], 0, wxALIGN_LEFT | wxALL, 5);
+	flexSizer->Add(mProductUnitPriceCtrl, 0, wxALIGN_LEFT | wxALL, 5);
+
+	flexSizer->Add(descp[8], 0, wxALIGN_LEFT | wxALL, 5);
+	flexSizer->Add(mProductStockCtrl, 0, wxALIGN_LEFT | wxALL, 5);
 	
-	boxSizer->Add(descp[7], 0, wxALIGN_LEFT | wxALL, 5);
-	boxSizer->Add(mProductPackageSizeCtrl, 0, wxGROW | wxALL, 5);
+	flexSizer->Add(descp[7], 0, wxALIGN_LEFT | wxALL, 5);
+	flexSizer->Add(mProductPackageSizeCtrl, 0, wxALIGN_LEFT | wxALL, 5);
+
+	boxSizer->Add(flexSizer, 0, wxALIGN_LEFT | wxALL, 5);
 
 	wxStaticLine* line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
 	boxSizer->Add(line, 0, wxGROW | wxALL, 5);
@@ -192,8 +196,9 @@ void ProductDialog::CreateControls()
 	//set validators
 	//have to figure how to do this validator lool 
 	wxTextValidator textValidator(wxFILTER_EMPTY);
+	wxFloatingPointValidator<float> floatValidator(2, &(mItemDataRef->UnitPrice()), wxNUM_VAL_ZERO_AS_BLANK);
 	mProductNameCtrl->SetValidator(textValidator);
-
+	mProductUnitPriceCtrl->SetValidator(floatValidator);
 }
 
 void ProductDialog::SetHelpDialog()
