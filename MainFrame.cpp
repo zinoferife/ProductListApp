@@ -86,7 +86,7 @@ void MainFrame::CreateToolBar()
 	toolbar->AddTool(ID_TOOL_ADD_CATEGORY, wxT("Add category"), wxArtProvider::GetBitmap("file"));
 	toolbar->AddTool(ID_TOOL_REMOVE_CATEGORY, wxT("Remove category"), wxArtProvider::GetBitmap("remove"));
 	toolbar->AddStretchSpacer();
-	toolbar->AddControl(new wxSearchCtrl(toolbar, ID_TOOL_SEARCH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER));
+	toolbar->AddControl(new wxSearchCtrl(toolbar, ID_TOOL_SEARCH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS));
 	toolbar->AddTool(ID_TOOL_DOWNLOAD_DATA, wxT("Download data"), wxArtProvider::GetBitmap("download"));
 	toolbar->AddTool(ID_TOOL_USER, wxT("User"), wxArtProvider::GetBitmap("user"));
 	toolbar->Realize();
@@ -98,9 +98,7 @@ void MainFrame::CreateMenuBar()
 {
 	wxMenuBar* menubar = new wxMenuBar;
 	wxMenu* file = new wxMenu;
-	file->Append(wxID_NEW, "New\tCtrl-N");
 	file->Append(wxID_SAVE, "Save\tCtrl-S");
-	file->Append(wxID_OPEN, "Open\tCtrl-O");
 
 	wxMenu* products = new wxMenu;
 	products->Append(ID_NEW_CATEGORY, "New categorty\tCtrl-T");
@@ -221,7 +219,13 @@ void MainFrame::OnSave(wxCommandEvent& event)
 {
 	//write the category and product count to the config
 	mProductList->SaveDatabase();
-	wxMessageBox("Saved", "Save", wxOK);
+	if (mProductList->GetErrorCode() == ProductList::DATABASE_SAVE_FAIL)
+	{
+		wxMessageBox("Cannot save database, failed to save, no write access", "Save", wxICON_ERROR | wxOK);
+	}
+	else {
+		wxMessageBox("Saved", "Save", wxOK);
+	}
 }
 
 void MainFrame::OnLoad(wxCommandEvent& event)
@@ -478,9 +482,10 @@ void MainFrame::OnDownloadData(wxCommandEvent& event)
 	choices.push_back("Json");
 	choices.push_back("Excel");
 	choices.push_back("Excel lean");
-	int sel = wxGetSelectedChoices(selections, wxT("Download data as:"), wxT("Download data"), choices);
+	int sel = wxGetSelectedChoices(selections, wxT("Download data as:"), wxT("Download data"), choices,
+		this , 0, 0,true, 600,600);
 	if (sel != -1)
-	{
+	{ 
 		if (selections.empty()) return;
 		for (auto i : selections)
 		{

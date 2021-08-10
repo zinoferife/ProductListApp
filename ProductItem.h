@@ -4,6 +4,8 @@
 #include <iostream>
 #include <list>
 #include <algorithm>
+#include <functional>
+#include <cstdio>
 
 //entity that represents a single product in the application
 
@@ -119,6 +121,8 @@ private:
 	std::uint32_t mStockCount;
 	std::uint32_t mPackageSize;
 	float mUnitPrice;	
+
+	static std::function<bool(const std::string&, const std::string&)> sCollate;
 
 private:
 	//Health tags: possible conditions that this product is used to threat

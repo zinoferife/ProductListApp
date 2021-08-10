@@ -44,7 +44,14 @@
     <ClInclude Include="ProductItem.h" />
     <ClInclude Include="ProductList.h" />
     <ClInclude Include="ProductStat.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="TextAutoComplete.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Debug\Images\dglopapic.PNG" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -3,6 +3,19 @@
 std::uint64_t ProductItem::IdGen::idSeed = 0;
 char* ProductItem::buffer = nullptr;
 
+std::function<bool(const std::string&, const std::string&)> ProductItem::sCollate = [](const std::string& a, std::string b) -> bool {
+	if (a.size() != b.size()) return false;
+	for (int i = 0; i < a.size(); i++)
+	{
+		if (std::tolower(a[i]) != std::tolower(b[i]))
+		{
+			return false;
+		}
+	}
+	//both compare
+	return true;
+};
+
 ProductItem::ProductItem()
 :mProductID{0},
 mStockCount{ 0 }, mPackageSize{0}, mUnitPrice{ 0.0 }{
@@ -63,12 +76,12 @@ ProductItem& ProductItem::operator=(const ProductItem&& product) noexcept
 
 bool ProductItem::operator==(ProductItem& compare)
 {
-	return (mProductName == compare.mProductName);
+	return sCollate(mProductName, compare.mProductName);
 }
 
 bool ProductItem::operator==(const ProductItem& compare) const
 {
-	return (mProductName == compare.mProductName);
+	return sCollate(mProductName, compare.mProductName);
 }
 
 bool ProductItem::operator<(ProductItem& compare)

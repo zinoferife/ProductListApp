@@ -46,7 +46,7 @@ bool ProductList::AddItem(const std::string& category, const ProductItem& item)
 	if (HasCategory(category, &iter))
 	{
 		ProductItem& citem = const_cast<ProductItem&>(item);
-		FormatProductName(citem.ProductName());
+		//FormatProductName(citem.ProductName());
 		auto itemIter = iter->second.insert(item);
 		if (itemIter.second)
 		{
@@ -94,7 +94,7 @@ bool ProductList::AddItem(const ProductItem& item)
 	}
 	auto& itemsVec = iter->second;
 	ProductItem& citem = const_cast<ProductItem&>(item);
-	FormatProductName(citem.ProductName());
+	//FormatProductName(citem.ProductName());
 	auto iterI = itemsVec.insert(item);
 	if (!iterI.second)
 	{
@@ -292,6 +292,11 @@ void ProductList::SaveDatabase()
 				database.flush();
 				return;
 			}
+		}
+		else
+		{
+			WriteErrorCode(DATABASE_SAVE_FAIL);
+			return;
 		}
 	}
 	//all good
