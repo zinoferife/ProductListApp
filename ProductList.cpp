@@ -16,7 +16,7 @@ EVT_MENU(ProductList::ID_CONTEXT_RENAME_IMAGE, ProductList::OnContextAddImageAnd
 END_EVENT_TABLE()
 
 ProductList::ProductList(wxWindow* parent, wxWindowID id, const wxPoint& position, const wxSize& size)
-: wxPanel(parent, id, position,size), mProductCurrentEditing(NULL){
+: wxPanel(parent, id, position,size), mProductCurrentEditing(nullptr){
 	mDatabasePath = wxGetApp().mApplicationPath + "\\.data";
 	mPLErrorCode = NO_PL_ERROR;
 	CreateListView();
@@ -46,7 +46,7 @@ bool ProductList::AddItem(const std::string& category, const ProductItem& item)
 	if (HasCategory(category, &iter))
 	{
 		ProductItem& citem = const_cast<ProductItem&>(item);
-		//FormatProductName(citem.ProductName());
+		FormatProductName(citem.ProductName());
 		auto itemIter = iter->second.insert(item);
 		if (itemIter.second)
 		{
@@ -565,7 +565,8 @@ void ProductList::CreateListView()
 	if (mDataListViewControl == nullptr)
 	{
 		//create the list view control
-		mDataListViewControl.reset(new wxDataViewListCtrl(this, ID_PRODUCT_VIEW, wxDefaultPosition, wxDefaultSize));
+		auto style = wxDV_HORIZ_RULES | wxDV_SINGLE | wxBORDER_THEME;
+		mDataListViewControl.reset(new wxDataViewListCtrl(this, ID_PRODUCT_VIEW, wxDefaultPosition, wxDefaultSize, style));
 		//create column
 		mDataListViewControl->AppendTextColumn("Product name", wxDATAVIEW_CELL_INERT, 180);
 		mDataListViewControl->AppendBitmapColumn(wxT("AVL"),1);

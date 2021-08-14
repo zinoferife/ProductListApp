@@ -36,6 +36,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="ArtProvider.h" />
     <ClInclude Include="HealthEntry.h" />
+    <ClInclude Include="ListAdapter.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="PLConfig.h" />
     <ClInclude Include="ProductDialog.h" />
@@ -143,15 +144,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;WXUSINGSDLL;wxMSVC_VERSION_AUTO;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;WXUSINGDLL;wxMSVC_VERSION_AUTO;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;wxUSE_GUI</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\ferif\source\repos\include\msvc;C:\Users\ferif\source\repos\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\ferif\OneDrive\Documents\wxWidget_3_1_5\include\msvc;C:\Users\ferif\OneDrive\Documents\wxWidget_3_1_5\include;C:\Users\ferif\source\repos\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\ferif\source\repos\libs\vc142_dll;C:\Users\ferif\source\repos\libs;C:\Users\ferif\source\repos\libs\json-lib\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\ferif\OneDrive\Documents\wxWidget_3_1_5\lib\vc142_x64_dll;C:\Users\ferif\source\repos\libs;C:\Users\ferif\source\repos\libs\json-lib\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenXLSX-sharedd.lib;jsoncppLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

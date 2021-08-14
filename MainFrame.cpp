@@ -42,7 +42,6 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxPoint& position, c
 	}
 
 	isCreated = true;
-
 	//setApp icon: Temp 
 	wxIcon icon;
 	icon.CopyFromBitmap(wxArtProvider::GetBitmap("appIcon"));
@@ -91,7 +90,7 @@ void MainFrame::CreateToolBar()
 	toolbar->AddTool(ID_TOOL_USER, wxT("User"), wxArtProvider::GetBitmap("user"));
 	toolbar->Realize();
 	mFrameManager->AddPane(toolbar, wxAuiPaneInfo().Name(wxT("Tool")).Caption(wxT("Tool bar"))
-		.ToolbarPane().Top().Resizable().Row(1).LeftDockable(false).RightDockable(false).Floatable(false).BottomDockable(false));
+		.ToolbarPane().Top().DockFixed().Resizable().Row(1).LeftDockable(false).RightDockable(false).Floatable(false).BottomDockable(false));
 }
 
 void MainFrame::CreateMenuBar()
@@ -134,7 +133,7 @@ void MainFrame::CreateProductList()
 
 void MainFrame::CreateCategoryList()
 {
-	mCategoryList.reset(new wxListBox(this, ID_CATEGORY_LIST));
+	mCategoryList.reset(new wxListBox(this, ID_CATEGORY_LIST, wxDefaultPosition, wxDefaultSize, wxArrayString{}, wxBORDER_THEME));
 	mFrameManager->AddPane(mCategoryList.get(), wxAuiPaneInfo().Name("Category list").Caption(wxT("Product Categories")).MinSize(wxSize(180, 180)).Floatable(true).Left().Layer(0));
 }
 
@@ -148,6 +147,12 @@ void MainFrame::CreateDefaultArtSettings()
 {
 	wxAuiDockArt* art = mFrameManager->GetArtProvider();
 	art->SetMetric(wxAUI_DOCKART_CAPTION_SIZE, 24);
+	art->SetMetric(wxAUI_DOCKART_GRIPPER_SIZE, 5);
+	art->SetMetric(wxAUI_DOCKART_SASH_SIZE, 5);
+	art->SetColour(wxAUI_DOCKART_SASH_COLOUR, *wxWHITE);
+	art->SetColour(wxAUI_DOCKART_BACKGROUND_COLOUR, *wxWHITE);
+	art->SetColour(wxAUI_DOCKART_BORDER_COLOUR, *wxWHITE);
+	art->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
 	art->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, wxAUI_GRADIENT_HORIZONTAL);
 	mFrameManager->SetFlags(mFrameManager->GetFlags() | wxAUI_MGR_ALLOW_ACTIVE_PANE | wxAUI_MGR_VENETIAN_BLINDS_HINT);
 }
@@ -180,7 +185,7 @@ void MainFrame::Load()
 	//load the previous perspective
 	if (!(*mPLConfig)["APP_PERSPECTIVE"].empty())
 	{
-		mFrameManager->LoadPerspective((*mPLConfig)["APP_PERSPECTIVE"]);
+		//mFrameManager->LoadPerspective((*mPLConfig)["APP_PERSPECTIVE"]);
 	}
 
 

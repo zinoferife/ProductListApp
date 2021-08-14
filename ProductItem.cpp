@@ -175,14 +175,14 @@ void ProductItem::WriteTag(std::ostream& os) const
 {
 	//write the size
 	std::size_t size = mHealthTag.size();
-	os.write((const char*)& size, sizeof(std::size_t));
+	os.write((const char*)& size, sizeof(std::uint32_t));
 
 	if (!mHealthTag.empty())
 	{
 		for (auto& i : mHealthTag)
 		{
 			const size_t bytes = sizeof(std::string::value_type) * i.size();
-			os.write((const char*)& bytes, sizeof(std::size_t));
+			os.write((const char*)& bytes, sizeof(std::uint32_t));
 			os.write(i.data(), bytes);
 		}
 	}
@@ -191,11 +191,11 @@ void ProductItem::WriteTag(std::ostream& os) const
 void ProductItem::ReadTag(std::istream& os)
 {
 	std::size_t listSize = 0, strSize = 0;
-	os.read((char*)& listSize, sizeof(std::size_t));
+	os.read((char*)& listSize, sizeof(std::uint32_t));
 	mHealthTag.clear();
 	for (int i = 0; i < listSize; i++)
 	{
-		os.read((char*)& strSize, sizeof(std::size_t));
+		os.read((char*)& strSize, sizeof(std::uint32_t));
 		if (strSize >= READ_SIZE) strSize = READ_SIZE;
 		memset(ProductItem::buffer, '\0', READ_SIZE);
 		os.read(ProductItem::buffer, strSize);
@@ -225,7 +225,7 @@ void ProductItem::DeallocateReadBuffer()
 static void WriteFromString(std::ostream& os, const std::string& string, std::size_t& bytes)
 {
 	bytes = sizeof(std::string::value_type) * string.size();
-	os.write((const char*)& bytes, sizeof(bytes));
+	os.write((const char*)& bytes, sizeof(std::uint32_t));
 	os.write(string.data(), bytes);
 }
 
@@ -258,7 +258,7 @@ std::ostream& operator<<(std::ostream& os, const ProductItem& item)
 }
 static void ReadIntoString(std::istream& os, std::string& string, std::size_t& bytes)
 {
-	os.read((char*)& bytes, sizeof(bytes));
+	os.read((char*)& bytes, sizeof(std::uint32_t));
 	if (bytes >= READ_SIZE) bytes = READ_SIZE;
 	memset(ProductItem::buffer, '\0', READ_SIZE);
 	os.read(ProductItem::buffer, bytes);

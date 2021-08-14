@@ -23,6 +23,7 @@
 #include "PLConfig.h"
 #include "ProductEntry.h"
 #include "ProductStat.h"
+#include "ListAdapter.h"
 
 class MainFrame : public wxFrame
 {
@@ -115,6 +116,7 @@ private:
 	std::unique_ptr<PLConfig> mPLConfig;
 	std::unique_ptr<wxHtmlWindow> mProductDisplay;
 	std::unique_ptr<ProductStat> mProductStat;
+	std::unique_ptr<wxAddRemoveCtrl> mAddRemoveCtrl;
 	friend class ProductList;
 
 	void PlugCategoryListEvents();
