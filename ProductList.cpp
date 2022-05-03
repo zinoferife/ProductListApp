@@ -335,6 +335,7 @@ void ProductList::SaveJsonFile()
 		for (auto& item : catSet.second)
 		{
 			Json::Value productITem(Json::objectValue);
+			productITem["Product class"] = item.GetProductClass();
 			productITem["Product Name"] = item.GetProductName();
 			productITem["Product Active ingredent"] = item.GetProductActIng();
 			productITem["Product Description"] = item.GetProdcutDesc();
@@ -635,9 +636,9 @@ void ProductList::RemoveFromViewList(ProductItem& item)
 	if (!item.IsEmpty())
 	{
 		int nrow = mDataListViewControl->GetSelectedRow();
-		nrow++;
 		if (nrow != wxNOT_FOUND)
 		{
+			//nrow++;
 			mDataListViewControl->DeleteItem(nrow);
 		}
 		else

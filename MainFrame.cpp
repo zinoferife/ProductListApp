@@ -488,7 +488,7 @@ void MainFrame::OnDownloadData(wxCommandEvent& event)
 	choices.push_back("Excel");
 	choices.push_back("Excel lean");
 	int sel = wxGetSelectedChoices(selections, wxT("Download data as:"), wxT("Download data"), choices,
-		this , 0, 0,true, 600,600);
+		this , -1, -1,true, 600,600);
 	if (sel != -1)
 	{ 
 		if (selections.empty()) return;
